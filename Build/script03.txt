@@ -1,0 +1,27 @@
+#Rechts
+rot r
+
+#Step
+mov d
+set d, d+0.0002
+sze d*3
+
+#Links
+rot -r
+
+#A
+X => X Rechts Y Step Rechts
+#B
+Y => Links Step X Links Y
+#C
+Step => 
+
+#Root
+set x, 4
+out 3^((2+2)^2)
+out x*12+3*3
+out x^(1+2)
+out x%12.3
+set r, 90
+set d, 0.17
+grw Step X, 11

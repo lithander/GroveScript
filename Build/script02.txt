@@ -1,0 +1,38 @@
+#Base
+set len, 8
+set alpha, 4
+set i, 10
+move len
+
+#Branch
+set i, i-1
+psh tmp
+mov len+i
+rot 9
+set len, i
+rot alpha
+mov len 
+pop tmp
+
+psh tmp
+mov len+i
+rot 10*i
+set len, i*1.2
+rot alpha
+mov len
+pop tmp
+
+#Baum
+rot alpha
+grw Branch, 3
+
+#Kewl
+grw Baum Foo Baum, 1
+rot 6
+set i, 10
+
+#Growth
+Baum Foo Baum => Baum Foo Baum Baum Foo Baum
+
+#Root
+grw Base Kewl Kewl Kewl Kewl Kewl Kewl, 1
