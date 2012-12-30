@@ -11,6 +11,7 @@ namespace Weirwood
 	public:
 		typedef std::map<std::string, int> IndexTable;
 		typedef std::list<std::string> LogMessageList;
+		typedef Command<InstructionSet> Command;
 
 		//STATE STACK
 		struct State
@@ -25,28 +26,33 @@ namespace Weirwood
 		Processor(Sprout* sproutPtr);
 		~Processor(void);
 		void Reset();
-		void Start();
-		Command<InstructionSet>* AppendCommand(const std::string& seqId);
-		ProductionRule* AppendProduction();
-		void Execute(SymbolList& symbols);
-		void Execute(const std::string& seqId);
-		void Execute(Command<InstructionSet>* cmd);
-		void Stop();
+		void Run(const std::string& seqId);
+		bool IsValid() { return mValid; }
+		void ClearLog() { mLog.clear(); }
 		LogMessageList& LogMessages() { return mLog; }
+
+		Command* AppendCommand(const std::string& seqId);
+		ProductionRule* AppendProduction();
 
 		//IExpressionIndex
 		int GetVarIndex(const std::string& name);
 		virtual Variables* GetVars() { return &mVars; }
+		virtual double GetTime();
 		virtual void Log(const std::string& msg);
+		virtual void Abort(const std::string& msg);
 		//ICommandContext
 		virtual InstructionSet GetOperationType(const std::string& opToken);
 		//IProductionContext
 		virtual void ParseSymbolList(const std::string& line, SymbolList& out_symbols);
 	private:
+		void Execute(SymbolList& symbols);
+		void Execute(Command* cmd);
+
 		//Commands
 		void SetVariable(const std::string& name, double value);
 		void PushState(const std::string& stackId);
 		void PopState(const std::string& stackId);
+		void ClearStacks();
 		void Print(const std::string& token);
 		void Grow(SymbolList& inout_axiom, int iterations);
 		void Grow(const std::string& line, int iterations);
@@ -56,6 +62,7 @@ namespace Weirwood
 		Sprout* mSproutPtr;
 
 		//input&state
+		bool mValid;
 		Variables mVars;
 		Productions mProductions;
 		StateStackTable mStacks;
@@ -68,8 +75,7 @@ namespace Weirwood
 
 		int GetSequenceIndex(const std::string& name);
 		int GetSymbolIndex(const std::string& name);
-
-				
+						
 		//tmp
 		std::stack<State*> mStateCache;
 		std::stack<SymbolList*> mGrowSymbols;

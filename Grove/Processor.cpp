@@ -3,6 +3,7 @@
 #include "Sprout.h"
 #include "Command.h"
 #include "Expression.h"
+#include <ctime>
 
 using namespace Weirwood;
 
@@ -13,17 +14,19 @@ Processor::Processor(Sprout* sproutPtr)
 
 Processor::~Processor(void)
 {
-	//mGrowSymbols.clear(); //TODO: delete StringLists
+	ClearStacks();
 }
 
 void Processor::Reset()
 {
+	ClearStacks();
+
+	mValid = true;
 	mLog.clear();
 	mSproutPtr->Reset();
 
 	mVars.clear();
 	mProductions.clear();
-	mStacks.clear();
 	mSequences.clear();
 
 	//index tables
@@ -31,22 +34,46 @@ void Processor::Reset()
 	mSymbolIndexTable.clear();
 	mVarIndexTable.clear();
 
-	//TODO: delete States
 	//TODO: delete Commands from Sequences
 }
 
-void Processor::Start()
+void Processor::ClearStacks()
 {
-	mLog.clear();
-	mSproutPtr->Reset();
+	for(StateStackTable::iterator it = mStacks.begin(); it != mStacks.end(); it++)
+		while(it->second.size() > 0)
+		{
+			State* pState = it->second.top();
+			delete pState;
+			it->second.pop();	
+		}
 	mStacks.clear();
-	for(Variables::iterator it = mVars.begin(); it != mVars.end(); it++)
-		(*it) = 0;
 }
 
-void Processor::Stop()
+void Processor::Run(const std::string& seqId)
 {
-	mSproutPtr->Flush();	
+	if(!mValid)
+	{
+		Abort("Invalid State. Reset required!");
+		return;
+	}
+	try
+	{
+		mSproutPtr->Reset();
+		ClearStacks();
+
+		for(Variables::iterator it = mVars.begin(); it != mVars.end(); it++)
+			(*it) = 0;
+
+		CommandList& seq = mSequences[GetSequenceIndex(seqId)];
+		for(CommandList::iterator it = seq.begin(); it != seq.end(); it++)
+			Execute(*it);
+
+		mSproutPtr->Flush();
+	}
+	catch(Error e)
+	{
+		Abort(e.desc);
+	}
 }
 
 void Processor::Execute(SymbolList& symbols)
@@ -61,17 +88,11 @@ void Processor::Execute(SymbolList& symbols)
 		}
 }
 
-void Processor::Execute(const std::string& seqId)
-{
-	CommandList& seq = mSequences[GetSequenceIndex(seqId)];
-	for(CommandList::iterator it = seq.begin(); it != seq.end(); it++)
-		Execute(*it);
-}
 
 InstructionSet Processor::GetOperationType(const std::string& opOperation)
 {
+	//TODO: Use Keyword-class to map string to enumeration member. Resolve operation based on that
 	std::string op = boost::to_upper_copy(opOperation);
-
 	if(op == "MOV")
 		return MOVE_OP;
 	else if(op == "ROT")
@@ -96,7 +117,7 @@ InstructionSet Processor::GetOperationType(const std::string& opOperation)
 		return NO_OP;
 }
 
-void Processor::Execute(Command<InstructionSet>* pCmd)
+void Processor::Execute(Processor::Command* pCmd)
 {
 	//mLog.push_back(pCmd->source);
 	InstructionSet op = pCmd->GetOperation();
@@ -186,13 +207,17 @@ void Processor::PopState(const std::string& stackId)
 void Processor::Print(const std::string& token)
 {
 	std::stringstream ss;
-	ss << "PRINT: " << token;
+	ss << "PRINT: " << token << " = ";
 	try
 	{
 		Expression ex(this);
 		ex.Parse(token);
 		double result = ex.Evaluate();
-		ss << " = " << result;
+		ss << result;
+	}
+	catch(Error e)
+	{
+		ss << "Error: " << e.desc;
 	}
 	catch(...) { };
 	mLog.push_back(ss.str());
@@ -201,6 +226,12 @@ void Processor::Print(const std::string& token)
 void Processor::Log(const std::string& msg)
 {
 	mLog.push_back(msg);
+}
+
+void Processor::Abort(const std::string& msg)
+{
+	mLog.push_back("ERROR: "+msg);
+	mValid = false;
 }
 
 void Processor::ParseSymbolList(const std::string& line, SymbolList& out_symbols)
@@ -214,7 +245,7 @@ void Processor::ParseSymbolList(const std::string& line, SymbolList& out_symbols
 		if(s != "")
 			out_symbols.push_back(GetSymbolIndex(s));
 		
-		if(nextPos >= line.length())
+		if(nextPos == line.npos)
 			return;
 
 		pos = nextPos+1;
@@ -237,7 +268,7 @@ int Processor::GetSymbolIndex(const std::string& name)
 			return index;
 		}
 		//Symbol is new - return unoccupied negative number and cache for next query
-		int index = -(1+mSymbolIndexTable.size());
+		int index = -(1+(int)mSymbolIndexTable.size());
 		mSymbolIndexTable[name] = index; //eg last index after resize
 		return index;
 	}
@@ -249,9 +280,9 @@ ProductionRule* Processor::AppendProduction()
 	return &mProductions.back();
 }
 
-Command<InstructionSet>* Processor::AppendCommand(const std::string& seqId)
+Processor::Command* Processor::AppendCommand(const std::string& seqId)
 {
-	Command<InstructionSet>* pCmd = new Command<InstructionSet>(this);
+	Processor::Command* pCmd = new Processor::Command(this);
 	mSequences[GetSequenceIndex(seqId)].push_back(pCmd);
 	return pCmd;
 }
@@ -302,7 +333,9 @@ int Processor::GetVarIndex(const std::string& name)
 	}
 }
 		
-
-
-		
+double Processor::GetTime()
+{
+	clock_t ticks = clock();
+	return (double)ticks / CLOCKS_PER_SEC;
+}
 

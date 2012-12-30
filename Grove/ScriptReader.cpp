@@ -16,25 +16,36 @@ ScriptReader::~ScriptReader(void)
 
 bool ScriptReader::Parse(std::istream& input, Processor* procPtr)
 {
-	std::string id = "ROOT";
+	std::string id = "Root";
 	std::string line;
-	while(input.good() && !input.eof())
+	int lineNumber = 0;
+	try
 	{
-		std::getline(input, line);
-		if(line == "")
+		while(input.good() && !input.eof())
 		{
-			continue;
+			lineNumber++;
+			std::getline(input, line);
+			if(line == "" || line.find("//") == 0)
+				continue;
+
+			if(line.find('#') == 0)
+			{
+				id = line.substr(1);
+			}
+			else if(line.find("=>") != line.npos)
+			{
+				procPtr->AppendProduction()->Parse(line);
+			}
+			else
+			{
+				Processor::Command* cmdPtr = procPtr->AppendCommand(id); 
+				cmdPtr->Parse(line, lineNumber);
+			}
 		}
-		if(line.find('#') == 0)
-		{
-			id = line.substr(1);
-		}
-		else if(line.find("=>") != line.npos)
-		{
-			procPtr->AppendProduction()->Parse(line);
-		}
-		else
-			procPtr->AppendCommand(id)->Parse(line);
+	}
+	catch(Error e)
+	{
+		procPtr->Abort(e.desc);
 	}
 	return true;
 }

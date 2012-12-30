@@ -1,3 +1,15 @@
+set t, time()
+out sin(t*360)
+set x, 4
+out 5*sin(1)
+out 3^((2+2)^2)
+out x*12+3*3
+out x^(1+2)
+out x%12.3
+set r, 90
+set d, 0.17
+grw Step X, 11
+
 #Rechts
 rot r
 
@@ -16,14 +28,3 @@ Y => Links Step X Links Y
 #C
 Step => 
 
-#Root
-set t, time()
-out sin(t*360)
-set x, 4
-out 3^((2+2)^2)
-out x*12+3*3
-out x^(1+2)
-out x%12.3
-set r, 90
-set d, 0.17
-grw Step X, 11

@@ -15,10 +15,10 @@ namespace Weirwood
 	class Command
 	{
 	public:
-		Command(ICommandContext<T>* pContext) : mContextPtr(pContext) {}
+		Command(ICommandContext<T>* pContext) : mContextPtr(pContext), mLineNumber(-1) {}
 		~Command(void);
 		
-		void Parse(const std::string& line);
+		void Parse(const std::string& line, int lineNr = -1);
 		
 		T GetOperation() const
 		{
@@ -32,6 +32,7 @@ namespace Weirwood
 		
 		double GetNumber(int index) const;
 	protected:
+		int mLineNumber;
 		std::vector<Expression*> mExpressions;
 		std::vector<std::string> mTokens;
 		int mCount;
@@ -48,8 +49,10 @@ namespace Weirwood
 	}
 
 	template <typename T>
-	void Command<T>::Parse(const std::string& line)
+	void Command<T>::Parse(const std::string& line, int lineNr)
 	{
+		mLineNumber = lineNr;
+
 		//Destroy
 		for(std::vector<Expression*>::iterator it = mExpressions.begin(); it != mExpressions.end(); it++)
 			delete *it;
@@ -71,7 +74,7 @@ namespace Weirwood
 
 			//Create Expression
 			Expression* pExp = new Expression(mContextPtr);
-			pExp->Parse(mTokens[mCount]);
+			pExp->Parse(mTokens[mCount], lineNr);
 			mExpressions.push_back(pExp);
 			pos = nextPos;
 			mCount++;
@@ -83,25 +86,13 @@ namespace Weirwood
 	{
 		if(index >= mCount)
 		{
-			mContextPtr->Log("ERROR: \"Not enough tokens available!");
+			std::stringstream ss;
+			ss << "Line " << mLineNumber << ": Not enough parameters!";
+			mContextPtr->Abort(ss.str());
 			return 1;
 		}
 		return mExpressions[index]->Evaluate();
-		/*	
-		char* lastChar;
-		double result = strtod(token.c_str(), &lastChar);
-		if(*lastChar != '\0')
-		{
-			try
-			{
-			}
-			catch(Error& e)
-			{
-				mContextPtr->Log("ERROR: \""+token+"\" is not a valid expression! "+e.what());
-			}
-		}
-		return result;
-		*/
+
 	}
 }
 

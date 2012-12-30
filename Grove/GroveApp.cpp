@@ -65,12 +65,15 @@ void Grove::draw()
 		gl::clear( Color::black() );
 		//PROCESS COMMANDS
 		gl::setMatricesWindow( getWindowSize() );
+		
 		ci::Timer t;
-		t.start();
-		mProcessorPtr->Start();
-		mProcessorPtr->Execute("Root");
-		mProcessorPtr->Stop();
-		t.stop();
+		if(mProcessorPtr->IsValid())
+		{
+			t.start();
+			mProcessorPtr->ClearLog();
+			mProcessorPtr->Run("Root");
+			t.stop();
+		}
 		
 		//PRINT COMMANDS
 		gl::enableAlphaBlending();
