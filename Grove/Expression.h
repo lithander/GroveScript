@@ -31,16 +31,20 @@ namespace Weirwood
 		  OP_DIV,
 		  LP,		
 		  RP,
+		  DELIMITER
 		};
 
 		Expression(IExpressionContext* pContext);
 		~Expression(void);
-		void Parse(const std::string& line, int lineNumber = -1);
-		double Evaluate();
+		void SetDebugInfo(int lineNr) { mLineNumber = lineNr; };
+		void PushToken(TokenType token);
+		void PushFunction(FunctionSet func);
+		void PushNumber(double value);
+		void PushVariable(int varIdx);
+		double Evaluate() const;
 	private:
 		IExpressionContext* mContextPtr;
-		Variables* mVarsPtr;
-
+		
 		std::vector<TokenType> mTokens;
 		std::vector<FunctionSet> mFunctions;
 		std::vector<double> mValues;
@@ -48,24 +52,22 @@ namespace Weirwood
 
 		//debug
 		int mLineNumber;
-		void Throw(std::string error);
-				
-		//functions
-		FunctionSet GetFunctionType(const std::string& fnToken); //TODO: move into context as-well as implementation
+		void Throw(std::string error) const;		
 		
 		//evaluation helper
-		double EvalP1();
-		double EvalP2();
-		double EvalP3();
-		double EvalP4();
-		double EvalFunction();
-		inline void VerifyRP();
+		double EvalP1() const;
+		double EvalP2() const;
+		double EvalP3() const;
+		double EvalP4() const;
+		double EvalFunction() const;
+		inline void VerifyRP() const;
 		
-		//current state
-		TokenType mType;
-		int mFunctionIndex;
-		int mTokenIndex;
-		int mValueIndex;
-		int mVarIndex;
+		//current evaluation state
+		mutable TokenType mType;
+		mutable Variables* mVarsPtr;
+		mutable int mTokenIndex;
+		mutable short mFunctionIndex;
+		mutable short mValueIndex;
+		mutable short mVarIndex;
 	};
 }

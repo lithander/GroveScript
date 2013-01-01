@@ -6,7 +6,7 @@
 
 namespace Weirwood
 {
-	class Processor : public ICommandContext<InstructionSet>, public IProductionContext
+	class Processor : public IExpressionContext
 	{
 	public:
 		typedef std::map<std::string, int> IndexTable;
@@ -40,10 +40,8 @@ namespace Weirwood
 		virtual double GetTime();
 		virtual void Log(const std::string& msg);
 		virtual void Abort(const std::string& msg);
-		//ICommandContext
-		virtual InstructionSet GetOperationType(const std::string& opToken);
-		//IProductionContext
-		virtual void ParseSymbolList(const std::string& line, SymbolList& out_symbols);
+		//SymbolList creation
+		void FillSymbolList(const std::string& line, SymbolList& out_symbols);
 	private:
 		void Execute(SymbolList& symbols);
 		void Execute(Command* cmd);
@@ -56,7 +54,7 @@ namespace Weirwood
 		void Grow(SymbolList& inout_axiom, int iterations);
 		void Grow(const std::string& line, int iterations);
 		//TODO: Print is too app-specific to fit into Processor
-		void Print(const std::string& token);
+		void Print(Command* pCmd);
 
 		//output
 		LogMessageList mLog;

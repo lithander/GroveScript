@@ -48,6 +48,10 @@ FunctionSet Keywords::Function(const std::string& token)
 		return SIN_FN;
 	else if(fn == "COS")
 		return COS_FN;
+	else if(fn == "MIN")
+		return MIN_FN;
+	else if(fn == "MAX")
+		return MAX_FN;
 	else
 		return VOID_FN;
 }

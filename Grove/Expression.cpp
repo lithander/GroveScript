@@ -5,7 +5,7 @@
 
 using namespace Weirwood;
 
-Expression::Expression(IExpressionContext* pContext) : mContextPtr(pContext), mLineNumber(-1)
+Expression::Expression(IExpressionContext* pContext) : mContextPtr(pContext), mLineNumber(-1), mVarsPtr(NULL)
 {
 }
 
@@ -13,7 +13,30 @@ Expression::~Expression(void)
 {
 }
 
-void Expression::Throw(std::string error)
+void Expression::PushToken(TokenType token) 
+{ 
+	mTokens.push_back(token); 
+}
+
+void Expression::PushFunction(FunctionSet func) 
+{ 
+	PushToken(FUNCTION); 
+	mFunctions.push_back(func); 
+}
+
+void Expression::PushNumber(double value) 
+{
+	PushToken(NUMBER);
+	mValues.push_back(value); 
+};
+
+void Expression::PushVariable(int varIdx) 
+{ 
+	PushToken(VAR); 
+	mVars.push_back(varIdx); 
+};
+
+void Expression::Throw(std::string error) const
 {
 	std::stringstream ss;
 	if(mLineNumber >= 1)
@@ -22,96 +45,7 @@ void Expression::Throw(std::string error)
 	throw Error(ss.str());
 }
 
-void Expression::Parse(const std::string& line, int lineNumber)
-{
-	mLineNumber = lineNumber;
-	//RESET
-	mTokens.clear();
-	mVars.clear();
-	mValues.clear();
-	mFunctions.clear();
-	//PARSE
-	std::stringstream stream = std::stringstream(line);
-	//skip blanks
-	stream >> std::skipws;
-	bool done = false;
-	for(;;)
-	{
-		char ch = 0;
-		stream >> ch;
-		switch (ch)
-		{
-			case 0 :
-				mTokens.push_back(END);
-				return;
-			//operator
-			case '+' :
-				mTokens.push_back(OP_PLUS); break;
-			case '-' :
-				mTokens.push_back(OP_MINUS); break;
-			case '*' :
-				mTokens.push_back(OP_MUL); break;
-			case '/' :
-				mTokens.push_back(OP_DIV); break;
-			case '%' :
-				mTokens.push_back(OP_MOD); break;
-			case '^' :
-				mTokens.push_back(OP_POWER); break;
-			case '(' :
-				mTokens.push_back(LP); break;
-			case ')' :
-				mTokens.push_back(RP); break;
-			//number
-			case '0' :	case '1' :	case '2' :	case '3' : 	case '4' :
-			case '5' :	case '6' :	case '7' :	case '8' :	case '9' :
-			case '.' :
-				stream.putback(ch);
-				double value;
-				stream >> value;
-				mValues.push_back(value);
-				mTokens.push_back(NUMBER);
-				break;
-			//string token
-			default:
-				if (!isalpha(ch))
-				{
-					std::string badSymbol;
-					badSymbol+=ch;
-					Throw("Symbol '"+badSymbol+"' is not understood.");
-				}
-				//read all alphanumeric characters
-				std::string token;
-				token+=ch;
-				while (stream.get(ch) && isalpha(ch)) 
-					token+=ch;
-				//if ch is '(' token specifies a function
-				if(ch == '(')
-				{
-					mFunctions.push_back(GetFunctionType(token));
-					mTokens.push_back(FUNCTION);
-					//the LP isn't needed in the token chain
-				}
-				else //token specifies a variable
-				{
-					mVars.push_back(mContextPtr->GetVarIndex(token));
-					mTokens.push_back(VAR);
-					//ch belongs to the next token
-					stream.putback(ch);
-				}
-				break;
-		}
-	}
-}
-
-FunctionSet Expression::GetFunctionType(const std::string& fnToken)
-{
-	FunctionSet fType = Keywords::Function(fnToken);
-	if(fType == VOID_FN)
-		Throw("Function '"+fnToken+"' is not understood!");
-	return fType;
-}
-
-double Expression::Evaluate()
+double Expression::Evaluate() const
 {
 	mVarsPtr = mContextPtr->GetVars();
 	mTokenIndex = 0;
@@ -121,7 +55,7 @@ double Expression::Evaluate()
 	return EvalP1();
 }
 
-double Expression::EvalP1()
+double Expression::EvalP1() const
 {
 	//Addition/Subtraction
 	double left = EvalP2();      
@@ -139,7 +73,7 @@ double Expression::EvalP1()
 		}
 }
 
-double Expression::EvalP2()
+double Expression::EvalP2() const
 {
 	//Multiplication/Division/Modulo
 	double left = EvalP3();
@@ -163,7 +97,7 @@ double Expression::EvalP2()
 		}
 }
 
-double Expression::EvalP3()
+double Expression::EvalP3() const
 {
 	//Power
 	double left = EvalP4();
@@ -172,7 +106,7 @@ double Expression::EvalP3()
 	return left;
 }
 
-double Expression::EvalP4()
+double Expression::EvalP4() const
 {
 	mType = mTokens[mTokenIndex++];  
 	switch (mType)
@@ -209,14 +143,16 @@ double Expression::EvalP4()
 			return -EvalP3();
 		default :
 			Throw("Primary expected");
+			return 0;
 	}
 }
 
-double Expression::EvalFunction()
+double Expression::EvalFunction() const
 {
 	const double DEG_TO_RAD = 0.01745329251994329444444444444444;//PI / 180.0;
 	const double RAD_TO_DEG = 57.295779513082320876798154814105;//180.0 / PI;
 
+	double a;
 	FunctionSet function = mFunctions[mFunctionIndex++];
 	switch(function)
 	{
@@ -226,16 +162,26 @@ double Expression::EvalFunction()
 		case SIN_FN:
 			return sin(DEG_TO_RAD * EvalP1());
 		case COS_FN:
+			return cos(DEG_TO_RAD * EvalP1());
 		case MIN_FN:
+			a = EvalP1();
+			while(mType != RP)
+				a = std::min(a, EvalP1());
+			return a;
 		case MAX_FN:
+			a = EvalP1();
+			while(mType != RP)
+				a = std::max(a, EvalP1());
+			return a;
 			break;
 	}
 	Throw("FunctionType not implemented!");
+	return 0;
 }
 
-void Expression::VerifyRP()
+void Expression::VerifyRP() const
 {
 	if (mType != RP) 
-		Throw("')' expected.");
+		Throw("Closing parenthesis expected.");
 	mType = mTokens[mTokenIndex++];
 }

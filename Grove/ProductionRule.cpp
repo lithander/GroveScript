@@ -3,18 +3,6 @@
 
 using namespace Weirwood;
 
-void ProductionRule::Parse(const std::string& line)
-{
-	int splitPosition = line.find("=>", 0);
-	std::string from = line.substr(0, splitPosition);
-	std::string to = line.substr(splitPosition+2);
-
-	mPredecessor.clear();
-	mContextPtr->ParseSymbolList(from, mPredecessor);
-	mSuccessor.clear();
-	mContextPtr->ParseSymbolList(to, mSuccessor);
-}
-
 ProductionRule::~ProductionRule(void)
 {
 }

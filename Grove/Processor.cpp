@@ -89,12 +89,6 @@ void Processor::Execute(SymbolList& symbols)
 		}
 }
 
-
-InstructionSet Processor::GetOperationType(const std::string& token)
-{
-	return Keywords::Operation(token);
-}
-
 void Processor::Execute(Processor::Command* pCmd)
 {
 	//mLog.push_back(pCmd->source);
@@ -118,7 +112,7 @@ void Processor::Execute(Processor::Command* pCmd)
 	case POP_OP:
 		PopState(pCmd->GetToken(0)); break;
 	case OUT_OP:
-		Print(pCmd->GetToken(0)); break;
+		Print(pCmd); break;
 	case GROW_OP:
 		Grow(pCmd->GetToken(0), (int)pCmd->GetNumber(1)); break;
 	}
@@ -136,7 +130,7 @@ void Processor::Grow(const std::string& line, int iterations)
 		pSymbols = new SymbolList();
 
 	pSymbols->clear();
-	ParseSymbolList(line, *pSymbols);
+	FillSymbolList(line, *pSymbols);
 	Grow(*pSymbols, iterations);
 	Execute(*pSymbols);
 	mGrowSymbols.push(pSymbols);
@@ -182,15 +176,13 @@ void Processor::PopState(const std::string& stackId)
 	mStacks[stackId].pop();
 }
 
-void Processor::Print(const std::string& token)
+void Processor::Print(Command* pCmd)
 {
 	std::stringstream ss;
-	ss << "PRINT: " << token << " = ";
+	ss << "PRINT: " << pCmd->GetToken(0) << " = ";
 	try
 	{
-		Expression ex(this);
-		ex.Parse(token);
-		double result = ex.Evaluate();
+		double result = pCmd->GetNumber(0);
 		ss << result;
 	}
 	catch(Error e)
@@ -212,7 +204,7 @@ void Processor::Abort(const std::string& msg)
 	mValid = false;
 }
 
-void Processor::ParseSymbolList(const std::string& line, SymbolList& out_symbols)
+void Processor::FillSymbolList(const std::string& line, SymbolList& out_symbols)
 {
 	//TODO: migrate all parsing into script reader?
 	int pos = 0;
@@ -254,13 +246,13 @@ int Processor::GetSymbolIndex(const std::string& name)
 
 ProductionRule* Processor::AppendProduction()
 {
-	mProductions.push_back(ProductionRule(this));
+	mProductions.push_back(ProductionRule());
 	return &mProductions.back();
 }
 
 Processor::Command* Processor::AppendCommand(const std::string& seqId)
 {
-	Processor::Command* pCmd = new Processor::Command(this);
+	Processor::Command* pCmd = new Processor::Command(NO_OP);
 	mSequences[GetSequenceIndex(seqId)].push_back(pCmd);
 	return pCmd;
 }

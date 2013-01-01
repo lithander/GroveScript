@@ -4,7 +4,7 @@ set x, 4
 out 5*sin(1)
 out 3^((2+2)^2)
 out x*12+3*3
-out x^(1+2)
+out max(2, 4, 0.5*9)
 out x%12.3
 set r, 90
 set d, 0.17
