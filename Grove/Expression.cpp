@@ -1,5 +1,6 @@
 #include "Weirwood.h"
 #include "Expression.h"
+#include "Keywords.h"
 #include <cmath>
 
 using namespace Weirwood;
@@ -102,20 +103,12 @@ void Expression::Parse(const std::string& line, int lineNumber)
 	}
 }
 
-Expression::FunctionType Expression::GetFunctionType(const std::string& fnToken)
+FunctionSet Expression::GetFunctionType(const std::string& fnToken)
 {
-	//only used when parsing expression, performance shoulnd't be critical
-	//TODO: Use Keyword-class to map string to enumeration member. Resolve function based on that
-	std::string fn = boost::to_upper_copy(fnToken);
-	if(fn == "TIME")
-		return FN_TIME;
-	else if(fn == "SIN")
-		return FN_SIN;
-	else if(fn == "COS")
-		return FN_COS;
-
-	Throw("Function '"+fnToken+"' is not understood!");
-	return FN_VOID;
+	FunctionSet fType = Keywords::Function(fnToken);
+	if(fType == VOID_FN)
+		Throw("Function '"+fnToken+"' is not understood!");
+	return fType;
 }
 
 double Expression::Evaluate()
@@ -224,17 +217,17 @@ double Expression::EvalFunction()
 	const double DEG_TO_RAD = 0.01745329251994329444444444444444;//PI / 180.0;
 	const double RAD_TO_DEG = 57.295779513082320876798154814105;//180.0 / PI;
 
-	FunctionType function = mFunctions[mFunctionIndex++];
+	FunctionSet function = mFunctions[mFunctionIndex++];
 	switch(function)
 	{
-		case FN_TIME:
+		case TIME_FN:
 			mType = mTokens[mTokenIndex++];
 			return mContextPtr->GetTime();
-		case FN_SIN:
+		case SIN_FN:
 			return sin(DEG_TO_RAD * EvalP1());
-		case FN_COS:
-		case FN_MIN:
-		case FN_MAX:
+		case COS_FN:
+		case MIN_FN:
+		case MAX_FN:
 			break;
 	}
 	Throw("FunctionType not implemented!");

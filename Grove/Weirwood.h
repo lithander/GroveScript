@@ -42,6 +42,16 @@ namespace Weirwood
 		OUT_OP,
 		GROW_OP
 	};
+
+	enum FunctionSet
+	{
+		VOID_FN,
+		SIN_FN,
+		COS_FN,
+		TIME_FN,
+		MIN_FN,
+		MAX_FN
+	};
 	
 	//Types
 	typedef std::map<std::string, double> VarTable;

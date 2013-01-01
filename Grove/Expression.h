@@ -33,16 +33,6 @@ namespace Weirwood
 		  RP,
 		};
 
-		enum FunctionType
-		{
-			FN_VOID,
-			FN_SIN,
-			FN_COS,
-			FN_TIME,
-			FN_MIN,
-			FN_MAX
-		};
-
 		Expression(IExpressionContext* pContext);
 		~Expression(void);
 		void Parse(const std::string& line, int lineNumber = -1);
@@ -52,7 +42,7 @@ namespace Weirwood
 		Variables* mVarsPtr;
 
 		std::vector<TokenType> mTokens;
-		std::vector<FunctionType> mFunctions;
+		std::vector<FunctionSet> mFunctions;
 		std::vector<double> mValues;
 		std::vector<int> mVars;
 
@@ -60,8 +50,8 @@ namespace Weirwood
 		int mLineNumber;
 		void Throw(std::string error);
 				
-		//parsing helper
-		FunctionType GetFunctionType(const std::string& fnToken);
+		//functions
+		FunctionSet GetFunctionType(const std::string& fnToken); //TODO: move into context as-well as implementation
 		
 		//evaluation helper
 		double EvalP1();

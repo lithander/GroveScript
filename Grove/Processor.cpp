@@ -3,6 +3,7 @@
 #include "Sprout.h"
 #include "Command.h"
 #include "Expression.h"
+#include "Keywords.h"
 #include <ctime>
 
 using namespace Weirwood;
@@ -89,32 +90,9 @@ void Processor::Execute(SymbolList& symbols)
 }
 
 
-InstructionSet Processor::GetOperationType(const std::string& opOperation)
+InstructionSet Processor::GetOperationType(const std::string& token)
 {
-	//TODO: Use Keyword-class to map string to enumeration member. Resolve operation based on that
-	std::string op = boost::to_upper_copy(opOperation);
-	if(op == "MOV")
-		return MOVE_OP;
-	else if(op == "ROT")
-		return ROTATE_OP;
-	else if(op == "SZE")
-		return SIZE_OP;
-	else if(op == "POS")
-		return POSITION_OP;
-	else if(op == "DIR")
-		return DIRECTION_OP;
-	else if(op == "SET")
-		return SET_OP;
-	else if(op == "PSH")
-		return PUSH_OP;
-	else if(op == "POP")
-		return POP_OP;
-	else if(op == "OUT")
-		return OUT_OP;
-	else if(op == "GRW")
-		return GROW_OP;
-	else
-		return NO_OP;
+	return Keywords::Operation(token);
 }
 
 void Processor::Execute(Processor::Command* pCmd)

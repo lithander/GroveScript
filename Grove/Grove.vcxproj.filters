@@ -39,6 +39,9 @@
     <ClInclude Include="Weirwood.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="Keywords.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GroveApp.cpp">
@@ -63,6 +66,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Weirwood.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Keywords.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

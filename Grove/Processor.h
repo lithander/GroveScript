@@ -53,9 +53,10 @@ namespace Weirwood
 		void PushState(const std::string& stackId);
 		void PopState(const std::string& stackId);
 		void ClearStacks();
-		void Print(const std::string& token);
 		void Grow(SymbolList& inout_axiom, int iterations);
 		void Grow(const std::string& line, int iterations);
+		//TODO: Print is too app-specific to fit into Processor
+		void Print(const std::string& token);
 
 		//output
 		LogMessageList mLog;
