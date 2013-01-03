@@ -1,6 +1,7 @@
 #pragma once
 #include "Weirwood.h"
 #include "cinder/Vector.h"
+#include "cinder/Color.h"
 
 namespace Weirwood
 {
@@ -12,6 +13,7 @@ namespace Weirwood
 			ci::Vec2f Position;
 			ci::Vec2f Direction;
 			float StrokeWidth;
+			ci::Color Color;
 		};
 
 		Sprout(ci::Vec2f origin, float unitLength);
@@ -29,11 +31,15 @@ namespace Weirwood
 
 		void Rotate(float degree);
 		void SetRotation(float degree);
+
+		void SetColorRGB(float r, float g, float b);
+		void SetColorHSV(float h, float s, float v);
 	private:
 		void Render(bool enabled);
 		bool mRendering;
 		float mStrokeWidth;
 		float mUnitLength;
+		ci::Color mColor;
 		ci::Vec2f mOrigin;
 		ci::Vec2f mPosition;
 		ci::Vec2f mDirection;

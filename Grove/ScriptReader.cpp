@@ -91,14 +91,17 @@ void ScriptReader::ParseCommand(const std::string& line, int lineNr, Processor::
 			else if(c == ')')
 				parenDepth--;
 			else if(c == ',' && parenDepth == 0)
-				break;
+				break; //split here
 		}
 
 		//Create Expression
 		std::string token = line.substr(pos+1, nextPos-pos-1);
 		Expression exp(mProcPtr);
+		int foo = sizeof(exp);
+		int bar = sizeof(std::string);
+		int biz = sizeof(double);
 		ParseExpression(token, lineNr, &exp);
-		out->PushParam(token, exp); //exp will be copied. too costly?
+		out->PushParam(token, exp); //exp will be copied. It's 64 bytes so it should be okay. (std::string is 32byte in comparision)
 		pos = nextPos;
 	}
 	while(pos != end);

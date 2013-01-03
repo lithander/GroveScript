@@ -1,11 +1,18 @@
-set t, time()
+set t, time()*0.5
 out sin(t*360)
-set x, 4
-out 5*sin(1)
-out 3^((2+2)^2)
-out x*12+3*3
-out max(2, 4, 0.5*9)
-out x%12.3
+out clamp(sin(t*100),0,1)
+set x, -4
+out floor(2*clamp(sin(t*100),0,1))
+out ln(exp(4))
+out abs(x)
+psh foo
+set x, x+1
+out x
+pop foo
+out x
+out max(2, 4, t%1*9)
+
+set cbase, sin(t*100)*0.5+0.5
 set r, 90
 set d, 0.17
 grw Step X, 11
@@ -14,9 +21,10 @@ grw Step X, 11
 rot r
 
 #Step
-mov d
-set d, d+0.0002
-sze d*3
+hsv (d*3+t)%1, 1, 1
+mov 0.5
+set d, d+0.0005
+//sze d*3
 
 #Links
 rot -r

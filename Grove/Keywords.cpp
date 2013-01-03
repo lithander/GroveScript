@@ -2,6 +2,8 @@
 
 using namespace Weirwood;
 
+Keywords* Keywords::mInstance = NULL;
+
 Keywords::Keywords(void)
 {
 }
@@ -12,46 +14,74 @@ Keywords::~Keywords(void)
 
 InstructionSet Keywords::Operation(const std::string& token)
 {
-	//TODO: Use map<string, InstructionSet> to map string to enumeration member for faster lookup.
+	return Instance()->GetOperation(token);
+}
+
+InstructionSet Keywords::GetOperation(const std::string& token)
+{
 	std::string op = boost::to_upper_copy(token);
-	if(op == "MOV")
-		return MOVE_OP;
-	else if(op == "ROT")
-		return ROTATE_OP;
-	else if(op == "SZE")
-		return SIZE_OP;
-	else if(op == "POS")
-		return POSITION_OP;
-	else if(op == "DIR")
-		return DIRECTION_OP;
-	else if(op == "SET")
-		return SET_OP;
-	else if(op == "PSH")
-		return PUSH_OP;
-	else if(op == "POP")
-		return POP_OP;
-	else if(op == "OUT")
-		return OUT_OP;
-	else if(op == "GRW")
-		return GROW_OP;
+	std::map<std::string, InstructionSet>::iterator it = mOperations.find(op);
+	if(it != mOperations.end())
+		return it->second;
 	else
 		return NO_OP;
 }
 
 FunctionSet Keywords::Function(const std::string& token)
 {
-	//TODO: Use map<string, InstructionSet> to map string to enumeration member for faster lookup.
+	return Instance()->GetFunction(token);
+}
+
+FunctionSet Keywords::GetFunction(const std::string& token)
+{
 	std::string fn = boost::to_upper_copy(token);
-	if(fn == "TIME")
-		return TIME_FN;
-	else if(fn == "SIN")
-		return SIN_FN;
-	else if(fn == "COS")
-		return COS_FN;
-	else if(fn == "MIN")
-		return MIN_FN;
-	else if(fn == "MAX")
-		return MAX_FN;
+	std::map<std::string, FunctionSet>::iterator it = mFunctions.find(fn);
+	if(it != mFunctions.end())
+		return it->second;
 	else
 		return VOID_FN;
+}
+
+Keywords* Keywords::Instance()
+{
+	if(mInstance == NULL)
+	{
+		mInstance = new Keywords();
+		mInstance->Init();
+	}
+	return mInstance;
+}
+
+void Keywords::Init()
+{
+	//OPERATIONS
+	mOperations["MOV"] = MOVE_OP;
+	mOperations["ROT"] = ROTATE_OP;
+	mOperations["SZE"] = SIZE_OP;
+	mOperations["RGB"] = COLOR_RGB_OP;
+	mOperations["HSV"] = COLOR_HSV_OP;
+	mOperations["POS"] = POSITION_OP;
+	mOperations["DIR"] = DIRECTION_OP;
+	mOperations["SET"] = SET_OP;
+	mOperations["PSH"] = PUSH_OP;
+	mOperations["POP"] = POP_OP;
+	mOperations["OUT"] = OUT_OP;
+	mOperations["GRW"] = GROW_OP;
+
+	//FUNCTIONS
+	mFunctions["SIN"] = SIN_FN;
+	mFunctions["COS"] = COS_FN;
+	mFunctions["TAN"] = TAN_FN;
+	mFunctions["ASIN"] = ASIN_FN;
+	mFunctions["ACOS"] = ACOS_FN;
+	mFunctions["ATAN"] = ATAN_FN;
+	mFunctions["EXP"] = EXP_FN;
+	mFunctions["LN"] = LN_FN;
+	mFunctions["FLOOR"] = FLOOR_FN;
+	mFunctions["CEIL"] = CEIL_FN;
+	mFunctions["ABS"] = ABS_FN;
+	mFunctions["TIME"] = TIME_FN;
+	mFunctions["MIN"] = MIN_FN;
+	mFunctions["MAX"] = MAX_FN;
+	mFunctions["CLAMP"] = CLAMP_FN;
 }

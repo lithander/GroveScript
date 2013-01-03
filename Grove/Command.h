@@ -28,6 +28,8 @@ namespace Weirwood
 		
 		std::string GetToken(int index) const;
 		double GetNumber(int index) const;
+		bool GetBool(int index) const;
+		bool IsBoolean(int index) const;
 	protected:
 		int mLineNumber;
 		std::vector<Expression> mExpressions;
@@ -53,7 +55,19 @@ namespace Weirwood
 			ss << "Line " << mLineNumber << ": Not enough parameters!";
 			throw Error(ss.str());
 		}
-		return mExpressions[index].Evaluate();
+		return mExpressions[index].AsNumber();
+	}
+
+	template <typename T>
+	bool Command<T>::GetBool(int index) const
+	{
+		if(index >= mExpressions.size())
+		{
+			std::stringstream ss;
+			ss << "Line " << mLineNumber << ": Not enough parameters!";
+			throw Error(ss.str());
+		}
+		return mExpressions[index].AsBool();
 	}
 
 	template <typename T>
@@ -68,5 +82,13 @@ namespace Weirwood
 		return mTokens[index];
 	}
 
+	template <typename T>
+	bool Command<T>::IsBoolean(int index) const
+	{
+		if(index < mExpressions.size())
+			return mExpressions[index].IsBoolean();
+		else
+			return false;
+	}
 }
 

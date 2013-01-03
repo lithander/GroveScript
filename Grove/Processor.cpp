@@ -103,6 +103,10 @@ void Processor::Execute(Processor::Command* pCmd)
 		mSproutPtr->SetWidth((float)pCmd->GetNumber(0)); break;
 	case POSITION_OP:
 		mSproutPtr->SetPosition((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1)); break;
+	case COLOR_RGB_OP:
+		mSproutPtr->SetColorRGB((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1), (float)pCmd->GetNumber(2)); break;
+	case COLOR_HSV_OP:
+		mSproutPtr->SetColorHSV((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1), (float)pCmd->GetNumber(2)); break;
 	case DIRECTION_OP:
 		mSproutPtr->SetRotation((float)pCmd->GetNumber(0)); break;
 	case SET_OP:
@@ -182,8 +186,10 @@ void Processor::Print(Command* pCmd)
 	ss << "PRINT: " << pCmd->GetToken(0) << " = ";
 	try
 	{
-		double result = pCmd->GetNumber(0);
-		ss << result;
+		if(pCmd->IsBoolean(0))
+			ss << pCmd->GetBool(0);
+		else
+			ss << pCmd->GetNumber(0);
 	}
 	catch(Error e)
 	{
@@ -276,10 +282,7 @@ void Processor::SetVariable(const std::string& name, double value)
 {
 	IndexTable::iterator it = mVarIndexTable.find(name);
 	if(it != mVarIndexTable.end())
-	{
-		int index = it->second;
-		mVars[index] = value;
-	}
+		mVars[it->second] = value;
 	else
 	{
 		//insert

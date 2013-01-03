@@ -41,33 +41,41 @@ namespace Weirwood
 		void PushFunction(FunctionSet func);
 		void PushNumber(double value);
 		void PushVariable(int varIdx);
-		double Evaluate() const;
+		double AsNumber() const;
+		bool AsBool() const;
+		bool IsBoolean() const;
 	private:
 		IExpressionContext* mContextPtr;
 		
-		std::vector<TokenType> mTokens;
-		std::vector<FunctionSet> mFunctions;
-		std::vector<double> mValues;
-		std::vector<int> mVars;
+		union TokenData
+		{
+			TokenData(FunctionSet func) : Function(func) {}
+			TokenData(double val) : Value(val) {}
+			TokenData(int varIndex) : VarIndex(varIndex) {}
+			FunctionSet Function;
+			double Value;
+			int VarIndex;
+		};
 
+		std::vector<TokenType> mTokens;
+		std::vector<TokenData> mData;
+		
 		//debug
 		int mLineNumber;
 		void Throw(std::string error) const;		
 		
 		//evaluation helper
-		double EvalP1() const;
-		double EvalP2() const;
-		double EvalP3() const;
-		double EvalP4() const;
-		double EvalFunction() const;
+		double EvalM1() const;
+		double EvalM2() const;
+		double EvalM3() const;
+		double EvalM4() const;
+		double EvalFunction(FunctionSet func) const;
 		inline void VerifyRP() const;
 		
 		//current evaluation state
 		mutable TokenType mType;
 		mutable Variables* mVarsPtr;
 		mutable int mTokenIndex;
-		mutable short mFunctionIndex;
-		mutable short mValueIndex;
-		mutable short mVarIndex;
+		mutable int mDataIndex;
 	};
 }

@@ -34,6 +34,8 @@ namespace Weirwood
 		MOVE_OP,
 		ROTATE_OP,
 		SIZE_OP,
+		COLOR_RGB_OP,
+		COLOR_HSV_OP,
 		POSITION_OP,
 		DIRECTION_OP,
 		SET_OP,
@@ -46,11 +48,26 @@ namespace Weirwood
 	enum FunctionSet
 	{
 		VOID_FN,
+		
 		SIN_FN,
 		COS_FN,
+		TAN_FN,
+
+		ASIN_FN,
+		ACOS_FN,
+		ATAN_FN,
+		
+		EXP_FN,
+		LN_FN,
+
+		FLOOR_FN,
+		CEIL_FN,
+		ABS_FN,
+
 		TIME_FN,
 		MIN_FN,
-		MAX_FN
+		MAX_FN,
+		CLAMP_FN
 	};
 	
 	//Types
