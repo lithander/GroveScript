@@ -45,60 +45,145 @@ void Expression::Throw(std::string error) const
 	throw Error(ss.str());
 }
 
+bool Expression::IsBoolean() const
+{
+	for(std::vector<TokenType>::const_iterator it = mTokens.begin(); it != mTokens.end(); it++)
+		if((*it) >= LG_TRUE)
+			return true;
+
+	return false;
+}
+
 double Expression::AsNumber() const
 {
 	mVarsPtr = mContextPtr->GetVars();
+	mType = END;
 	mTokenIndex = 0;
 	mDataIndex = 0;
-	return EvalM1();
+	return EvalA1();
 }
 
 bool Expression::AsBool() const
 {
 	mVarsPtr = mContextPtr->GetVars();
+	mType = END;
 	mTokenIndex = 0;
 	mDataIndex = 0;
-	return true;
+	return EvalL1();
 }
 
-bool Expression::IsBoolean() const
+bool Expression::EvalL1() const
 {
-	return false;
+	//EQV & NEQV
+	bool left = EvalL2();
+	for(;;)
+	{
+		switch(mType)
+		{	
+			case LG_EQV:
+				left = left == EvalL2(); break;
+			case LG_NEQV:
+				left = left != EvalL2(); break;
+			default :
+				return left;
+		}
+	}
+	return left;
 }
 
-double Expression::EvalM1() const
+bool Expression::EvalL2() const
+{
+	//OR (left to right)
+	bool left = EvalL3();
+	while(mType == LG_OR)
+		left =  EvalL3() || left;
+	return left;
+}
+
+bool Expression::EvalL3() const
+{
+	//AND (left to right)
+	bool left = EvalL4();
+	while(mType == LG_AND)
+		left = EvalL4() && left;
+	return left;
+}
+
+bool Expression::EvalL4() const
+{
+	mType = mTokens[mTokenIndex++];
+	switch(mType)
+	{
+		case LG_TRUE:
+			mType = mTokens[mTokenIndex++];
+			return true;
+		case LG_FALSE:
+			mType = mTokens[mTokenIndex++];
+			return false;
+		case LG_NOT:
+			return !EvalL4();
+	}
+	
+	mType = mTokens[--mTokenIndex];
+	return EvalComparision();
+}
+
+bool Expression::EvalComparision() const
+{
+	//Comparision
+	double left = EvalA1();
+	switch(mType)
+	{
+	case LG_EQL:
+		return left == EvalA1();
+	case LG_NEQL:
+		return left != EvalA1();
+	case LG_LESS:
+		return left < EvalA1();
+	case LG_LESS_EQL:
+		return left <= EvalA1();
+	case LG_GREATER:
+		return left > EvalA1();
+	case LG_GREATER_EQL:
+		return left >= EvalA1();
+	default:
+		Throw("Comparision expected!");
+	}
+}
+
+double Expression::EvalA1() const
 {
 	//Addition/Subtraction
-	double left = EvalM2();      
+	double left = EvalA2();      
 	while(true)
 		switch (mType)
 		{
 			case OP_PLUS :
-				left += EvalM2();
+				left += EvalA2();
 				break;
 			case OP_MINUS :
-				left -= EvalM2();
+				left -= EvalA2();
 				break;
 			default :
 				return left;
 		}
 }
 
-double Expression::EvalM2() const
+double Expression::EvalA2() const
 {
 	//Multiplication/Division/Modulo
-	double left = EvalM3();
+	double left = EvalA3();
 	while(true)
 		switch (mType)
 		{
 			case OP_MOD:
-				left = fmod(left, EvalM3());
+				left = fmod(left, EvalA3());
 				break;
 			case OP_MUL :
-				left *= EvalM3();
+				left *= EvalA3();
 				break;
 			case OP_DIV :
-				if (double d = EvalM3())
+				if (double d = EvalA3())
 					left /= d;
 				else
 					Throw("Division by Zero");
@@ -108,16 +193,16 @@ double Expression::EvalM2() const
 		}
 }
 
-double Expression::EvalM3() const
+double Expression::EvalA3() const
 {
 	//Power
-	double left = EvalM4();
+	double left = EvalA4();
 	while(mType == OP_POWER)
-		left = pow(left, EvalM4());
+		left = pow(left, EvalA4());
 	return left;
 }
 
-double Expression::EvalM4() const
+double Expression::EvalA4() const
 {
 	mType = mTokens[mTokenIndex++];  
 	switch (mType)
@@ -146,13 +231,13 @@ double Expression::EvalM4() const
 		//parentheses
 		case LP :
 		{
-			double e = EvalM1();
+			double e = EvalA1();
 			VerifyRP();
 			return e;
 		}
 		// unary minus
 		case OP_MINUS :
-			return -EvalM3();
+			return -EvalA3();
 		default :
 			Throw("Primary expected");
 			return 0;
@@ -171,37 +256,40 @@ double Expression::EvalFunction(FunctionSet func) const
 			mType = mTokens[mTokenIndex++];
 			return mContextPtr->GetTime();
 		case SIN_FN:
-			return sin(DEG_TO_RAD * EvalM1());
+			return sin(DEG_TO_RAD * EvalA1());
 		case COS_FN:
-			return cos(DEG_TO_RAD * EvalM1());
+			return cos(DEG_TO_RAD * EvalA1());
 		case TAN_FN:
-			return tan(DEG_TO_RAD * EvalM1());
+			return tan(DEG_TO_RAD * EvalA1());
 		case MIN_FN:
-			a = EvalM1();
+			a = EvalA1();
 			while(mType != RP)
-				a = std::min(a, EvalM1());
+				a = std::min(a, EvalA1());
 			return a;
 		case MAX_FN:
-			a = EvalM1();
+			a = EvalA1();
 			while(mType != RP)
-				a = std::max(a, EvalM1());
+				a = std::max(a, EvalA1());
 			return a;
 		case ABS_FN:
-			return abs(EvalM1());
+			return abs(EvalA1());
 		case CLAMP_FN: //return clamp(v,min,max)
-			a = EvalM1();
-			return std::min(EvalM1(), std::max(a, EvalM1()));
+			a = EvalA1();
+			return std::min(EvalA1(), std::max(a, EvalA1()));
 		case ASIN_FN:
 		case ACOS_FN:
 		case ATAN_FN:
 		case EXP_FN:
-			return exp(EvalM1());
+			return exp(EvalA1());
 		case LN_FN:
-			return log(EvalM1());
+			return log(EvalA1());
 		case FLOOR_FN:
-			return floor(EvalM1());
+			return floor(EvalA1());
 		case CEIL_FN:
-			return ceil(EvalM1());
+			return ceil(EvalA1());
+		case FRAC_FN:
+			a = EvalA1();
+			return a - (long)a;
 			break;
 	}
 	Throw("FunctionType not implemented!");

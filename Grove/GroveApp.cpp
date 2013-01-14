@@ -78,7 +78,9 @@ void Grove::draw()
 		//PRINT COMMANDS
 		gl::enableAlphaBlending();
 		Vec2f textOutPos(0,10);
-		gl::drawString(mScriptPath, textOutPos, ColorA::white(), mFont);
+		std::stringstream ss;
+		ss << mScriptPath << " Load Time: " << mScriptParsingTime << "s";
+		gl::drawString(ss.str(), textOutPos, ColorA::white(), mFont);
 		textOutPos.y += mFont.getSize();
 		std::string lastToken = "";
 		for(Processor::LogMessageList::iterator it = mProcessorPtr->LogMessages().begin(); it != mProcessorPtr->LogMessages().end(); it++)
@@ -101,7 +103,7 @@ void Grove::draw()
 			else
 				lastToken = msg;			
 		}
-		std::stringstream ss;
+		ss.str("");
 		ss << "Execution Time: " << t.getSeconds() << "s";
 		gl::drawString(ss.str(), textOutPos, ColorA::hex(0xFFAAAA), mFont);
 	}
@@ -143,7 +145,11 @@ void Grove::loadScriptFile(const std::string scriptPath)
 	mScriptModificationTime = queryScriptModTime(mScriptPath);
 	mProcessorPtr->Reset();
 	ScriptReader reader;
+	ci::Timer ti;
+	ti.start();
 	reader.Parse(stream, mProcessorPtr);
+	ti.stop();
+	mScriptParsingTime = ti.getSeconds();
 	stream.close();
 }
 

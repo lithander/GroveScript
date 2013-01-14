@@ -21,6 +21,11 @@ Processor::~Processor(void)
 void Processor::Reset()
 {
 	ClearStacks();
+	while(!mTrash.empty())
+	{
+		delete mTrash.top();
+		mTrash.pop();
+	}
 
 	mValid = true;
 	mLog.clear();
@@ -44,7 +49,7 @@ void Processor::ClearStacks()
 		while(it->second.size() > 0)
 		{
 			State* pState = it->second.top();
-			delete pState;
+			mTrash.push(pState);
 			it->second.pop();	
 		}
 	mStacks.clear();
@@ -65,79 +70,13 @@ void Processor::Run(const std::string& seqId)
 		for(Variables::iterator it = mVars.begin(); it != mVars.end(); it++)
 			(*it) = 0;
 
-		CommandList& seq = mSequences[GetSequenceIndex(seqId)];
-		for(CommandList::iterator it = seq.begin(); it != seq.end(); it++)
-			Execute(*it);
-
+		ExecuteSequence(mSequences[GetSequenceIndex(seqId)]);
 		mSproutPtr->Flush();
 	}
 	catch(Error e)
 	{
 		Abort(e.desc);
 	}
-}
-
-void Processor::Execute(SymbolList& symbols)
-{
-	//run
-	for(SymbolList::iterator seqIt = symbols.begin(); seqIt != symbols.end(); seqIt++)
-		if(*seqIt >= 0) //skip non-sequence symbols
-		{
-			CommandList& seq = mSequences[*seqIt];
-			for(CommandList::iterator it = seq.begin(); it != seq.end(); it++)
-				Execute(*it);
-		}
-}
-
-void Processor::Execute(Processor::Command* pCmd)
-{
-	//mLog.push_back(pCmd->source);
-	InstructionSet op = pCmd->GetOperation();
-	switch(op)
-	{
-	case MOVE_OP:
-		mSproutPtr->Move((float)pCmd->GetNumber(0)); break;
-	case ROTATE_OP:
-		mSproutPtr->Rotate((float)pCmd->GetNumber(0)); break;
-	case SIZE_OP:
-		mSproutPtr->SetWidth((float)pCmd->GetNumber(0)); break;
-	case POSITION_OP:
-		mSproutPtr->SetPosition((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1)); break;
-	case COLOR_RGB_OP:
-		mSproutPtr->SetColorRGB((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1), (float)pCmd->GetNumber(2)); break;
-	case COLOR_HSV_OP:
-		mSproutPtr->SetColorHSV((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1), (float)pCmd->GetNumber(2)); break;
-	case DIRECTION_OP:
-		mSproutPtr->SetRotation((float)pCmd->GetNumber(0)); break;
-	case SET_OP:
-		SetVariable(pCmd->GetToken(0), pCmd->GetNumber(1)); break;
-	case PUSH_OP:
-		PushState(pCmd->GetToken(0)); break;
-	case POP_OP:
-		PopState(pCmd->GetToken(0)); break;
-	case OUT_OP:
-		Print(pCmd); break;
-	case GROW_OP:
-		Grow(pCmd->GetToken(0), (int)pCmd->GetNumber(1)); break;
-	}
-}
-
-void Processor::Grow(const std::string& line, int iterations)
-{
-	SymbolList* pSymbols = NULL;
-	if(!mGrowSymbols.empty())
-	{
-		pSymbols = mGrowSymbols.top();
-		mGrowSymbols.pop();
-	}
-	else 
-		pSymbols = new SymbolList();
-
-	pSymbols->clear();
-	FillSymbolList(line, *pSymbols);
-	Grow(*pSymbols, iterations);
-	Execute(*pSymbols);
-	mGrowSymbols.push(pSymbols);
 }
 
 void Processor::Grow(SymbolList& symbols, int iterations)
@@ -161,10 +100,143 @@ void Processor::Grow(SymbolList& symbols, int iterations)
 	Grow(symbols, --iterations);
 }
 
+void Processor::ExecuteSymbols(SymbolList& symbols)
+{
+	for(SymbolList::iterator seqIt = symbols.begin(); seqIt != symbols.end(); seqIt++)
+		if(*seqIt >= 0) //skip non-sequence symbols
+			ExecuteSequence(mSequences[*seqIt]);
+}
+
+void Processor::ExecuteSequence(CommandList& seq)
+{
+	//TODO: store and restore internal variables
+
+	//store flow-ctrl state in case of recursion
+	CommandList::iterator next = mNextCommand;
+	CommandList::iterator begin = mSequenceBegin;
+	CommandList::iterator end = mSequenceEnd;
+	
+	mSequenceEnd = seq.end();
+	mNextCommand = mSequenceBegin = seq.begin();
+	while(mNextCommand != mSequenceEnd)
+	{
+		Processor::Command* pCmd = *mNextCommand;
+		mNextCommand++;
+		ExecuteCommand(pCmd);
+	}
+	//restore flow-ctrl state in case of recursion
+	mNextCommand = next;
+	mSequenceBegin = begin;
+	mSequenceEnd = end;
+}
+
+void Processor::ExecuteCommand(Processor::Command* pCmd)
+{
+	//mLog.push_back(pCmd->source);
+	InstructionSet op = pCmd->GetOperation();
+	switch(op)
+	{
+	case MOVE_OP:
+		mSproutPtr->Move((float)pCmd->GetNumber(0)); break;
+	case ROTATE_OP:
+		mSproutPtr->Rotate((float)pCmd->GetNumber(0)); break;
+	case SIZE_OP:
+		mSproutPtr->SetWidth((float)pCmd->GetNumber(0)); break;
+	case POSITION_OP:
+		mSproutPtr->SetPosition((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1)); break;
+	case COLOR_RGB_OP:
+		mSproutPtr->SetColorRGB((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1), (float)pCmd->GetNumber(2)); break;
+	case COLOR_HSV_OP:
+		mSproutPtr->SetColorHSV((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1), (float)pCmd->GetNumber(2)); break;
+	case DIRECTION_OP:
+		mSproutPtr->SetRotation((float)pCmd->GetNumber(0)); break;
+	case SET_OP:
+		SetVariable(pCmd->GetToken(0), pCmd->GetNumber(1)); break;
+	case PUSH_OP:
+		PushState(pCmd->GetToken(0, "default")); break;
+	case POP_OP:
+		PopState(pCmd->GetToken(0, "default")); break;
+	case OUT_OP:
+		Print(pCmd); break;
+	case SUBSEQ_OP:
+		Subsequence(pCmd->GetToken(0)); break;
+	case GROW_OP:
+		Grow(pCmd->GetToken(0), (int)pCmd->GetNumber(1)); break;
+	case GATE_OP:
+		Gate(pCmd->GetBool(0), pCmd->GetBlockDepth()); break;
+	case BREAK_OP:
+		Break(pCmd->GetBlockDepth()); break;
+	case REPEAT_OP:
+		Repeat(pCmd->GetBlockDepth()); break;
+	}
+}
+
+void Processor::Gate(bool condition, int depth)
+{
+	//when condition evaluates false, skip all commands of depth >= op's depth except other branch op's of the same depth
+	if(condition)
+		return;
+
+	while(mNextCommand != mSequenceEnd)
+	{
+		int nextDepth = (*mNextCommand)->GetBlockDepth(); 
+		if(nextDepth < depth || (nextDepth == depth && (*mNextCommand)->GetOperation() == GATE_OP))
+			return;
+		mNextCommand++;
+	}
+}
+
+void Processor::Break(int depth)
+{
+	//skip all commands with depth >= op's depth
+	while(mNextCommand != mSequenceEnd && (*mNextCommand)->GetBlockDepth() >= depth)
+		mNextCommand++;
+}
+
+void Processor::Repeat(int depth)
+{
+	//seek first previous command with op's depth
+	while(mNextCommand != mSequenceBegin && (*(mNextCommand-1))->GetBlockDepth() >= depth)
+		mNextCommand--;
+}
+
+void Processor::Grow(const std::string& line, int iterations)
+{
+	SymbolList* pSymbols = NULL;
+	if(!mGrowSymbols.empty())
+	{
+		pSymbols = mGrowSymbols.top();
+		mGrowSymbols.pop();
+	}
+	else 
+		pSymbols = new SymbolList();
+
+	pSymbols->clear();
+	FillSymbolList(line, *pSymbols);
+	Grow(*pSymbols, iterations);
+	ExecuteSymbols(*pSymbols);
+	mGrowSymbols.push(pSymbols);
+}
+
+void Processor::Subsequence(const std::string& seqName)
+{
+	IndexTable::const_iterator it = mSequenceIndexTable.find(seqName);
+	if(it != mSequenceIndexTable.end())
+		ExecuteSequence(mSequences[it->second]);
+	else
+		throw Error("Sequence '"+seqName+"' is not defined!");
+}
+
 void Processor::PushState(const std::string& stackId)
 {
-	//TODO: instead of new/delete cache and reuse states
-	State* pState = new State();
+	State* pState;
+	if(mTrash.empty())
+		pState = new State();
+	else
+	{
+		pState = mTrash.top();
+		mTrash.pop();
+	}
 	pState->Vars = mVars;
 	mSproutPtr->ToState(pState->Sprout);
 	mStacks[stackId].push(pState);
@@ -172,22 +244,21 @@ void Processor::PushState(const std::string& stackId)
 
 void Processor::PopState(const std::string& stackId)
 {
-	//TODO: instead of new/delete cache and reuse states
 	State* pState = mStacks[stackId].top();
 	mVars = pState->Vars;
 	mSproutPtr->FromState(pState->Sprout);
-	delete pState;
+	mTrash.push(pState);
 	mStacks[stackId].pop();
 }
 
 void Processor::Print(Command* pCmd)
 {
 	std::stringstream ss;
-	ss << "PRINT: " << pCmd->GetToken(0) << " = ";
+	ss << "PRINT: '" << pCmd->GetToken(0) << "' = ";
 	try
 	{
 		if(pCmd->IsBoolean(0))
-			ss << pCmd->GetBool(0);
+			ss << (pCmd->GetBool(0) ? "true" : "false");
 		else
 			ss << pCmd->GetNumber(0);
 	}
@@ -256,9 +327,9 @@ ProductionRule* Processor::AppendProduction()
 	return &mProductions.back();
 }
 
-Processor::Command* Processor::AppendCommand(const std::string& seqId)
+Processor::Command* Processor::AppendCommand(const std::string& seqId, InstructionSet type, int blockDepth)
 {
-	Processor::Command* pCmd = new Processor::Command(NO_OP);
+	Processor::Command* pCmd = new Processor::Command(type, blockDepth);
 	mSequences[GetSequenceIndex(seqId)].push_back(pCmd);
 	return pCmd;
 }

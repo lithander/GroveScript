@@ -42,32 +42,11 @@ namespace Weirwood
 		PUSH_OP,
 		POP_OP,
 		OUT_OP,
-		GROW_OP
-	};
-
-	enum FunctionSet
-	{
-		VOID_FN,
-		
-		SIN_FN,
-		COS_FN,
-		TAN_FN,
-
-		ASIN_FN,
-		ACOS_FN,
-		ATAN_FN,
-		
-		EXP_FN,
-		LN_FN,
-
-		FLOOR_FN,
-		CEIL_FN,
-		ABS_FN,
-
-		TIME_FN,
-		MIN_FN,
-		MAX_FN,
-		CLAMP_FN
+		SUBSEQ_OP,
+		GROW_OP,
+		GATE_OP,
+		BREAK_OP,
+		REPEAT_OP
 	};
 	
 	//Types

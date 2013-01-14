@@ -1,21 +1,33 @@
-set t, time()*0.5
-out sin(t*360)
-out clamp(sin(t*100),0,1)
-set x, -4
-out floor(2*clamp(sin(t*100),0,1))
-out ln(exp(4))
-out abs(x)
-psh foo
-set x, x+1
-out x
-pop foo
-out x
-out max(2, 4, t%1*9)
+//out 1 = 2 and 0.5 > frac(time())
+set t, time()*0.2
+set u, time()*0.3
+out t
+	cnd frac(t) < 0.3
+	out 0 to 0.3
+		cnd frac(u) < 0.5
+		out u small
+		brk
+		cnd true
+		out u big
+		set u, 5
+			cnd u > 0
+			out u
+			set u, u-1
+			rpt
+	brk
+	cnd frac(t) < 0.6
+	out 0.3 to 0.6
+	brk
+	cnd true
+	out 0.6 to 1.0
 
+run Foo
+#Foo
+out foo called
 set cbase, sin(t*100)*0.5+0.5
 set r, 90
 set d, 0.17
-grw Step X, 11
+grw Step X, 10
 
 #Rechts
 rot r

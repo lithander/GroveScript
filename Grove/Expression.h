@@ -23,15 +23,57 @@ namespace Weirwood
 		  NUMBER,
 		  VAR,
 		  FUNCTION,
+		  LP,		
+		  RP,
+		  DELIMITER,
+		  
 		  OP_PLUS,	
 		  OP_MINUS,
 		  OP_MOD,
 		  OP_POWER,
 		  OP_MUL,		
 		  OP_DIV,
-		  LP,		
-		  RP,
-		  DELIMITER
+		  //WARNING: IsBoolean() assumes LG tokens to be last and start with LG_TRUE
+		  LG_TRUE,
+		  LG_FALSE,
+		  LG_NOT,
+		  LG_AND,
+		  LG_OR,
+		  LG_EQL,
+		  LG_NEQL,
+		  LG_LESS,
+		  LG_LESS_EQL,
+		  LG_GREATER,
+		  LG_GREATER_EQL,
+		  LG_EQV,
+		  LG_NEQV
+		};
+
+		
+		enum FunctionSet
+		{
+			VOID_FN,
+		
+			SIN_FN,
+			COS_FN,
+			TAN_FN,
+
+			ASIN_FN,
+			ACOS_FN,
+			ATAN_FN,
+		
+			EXP_FN,
+			LN_FN,
+
+			FLOOR_FN,
+			CEIL_FN,
+			ABS_FN,
+
+			TIME_FN,
+			MIN_FN,
+			MAX_FN,
+			CLAMP_FN,
+			FRAC_FN
 		};
 
 		Expression(IExpressionContext* pContext);
@@ -64,12 +106,19 @@ namespace Weirwood
 		int mLineNumber;
 		void Throw(std::string error) const;		
 		
-		//evaluation helper
-		double EvalM1() const;
-		double EvalM2() const;
-		double EvalM3() const;
-		double EvalM4() const;
+		//arithmetic evaluation
+		double EvalA1() const;
+		double EvalA2() const;
+		double EvalA3() const;
+		double EvalA4() const;
 		double EvalFunction(FunctionSet func) const;
+		//logic evaluation
+		bool EvalL1() const;
+		bool EvalL2() const;
+		bool EvalL3() const;
+		bool EvalL4() const;
+		bool EvalComparision() const;
+		//misc
 		inline void VerifyRP() const;
 		
 		//current evaluation state

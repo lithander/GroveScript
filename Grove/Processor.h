@@ -31,7 +31,7 @@ namespace Weirwood
 		void ClearLog() { mLog.clear(); }
 		LogMessageList& LogMessages() { return mLog; }
 
-		Command* AppendCommand(const std::string& seqId);
+		Command* AppendCommand(const std::string& seqId, InstructionSet type, int blockDepth);
 		ProductionRule* AppendProduction();
 
 		//IExpressionIndex
@@ -43,17 +43,21 @@ namespace Weirwood
 		//SymbolList creation
 		void FillSymbolList(const std::string& line, SymbolList& out_symbols);
 	private:
-		void Execute(SymbolList& symbols);
-		void Execute(Command* cmd);
+		void ExecuteSymbols(SymbolList& symbols);
+		void ExecuteSequence(CommandList& sequence);
+		void ExecuteCommand(Command* cmd);
+		void Grow(SymbolList& inout_axiom, int iterations);
 
 		//Commands
 		void SetVariable(const std::string& name, double value);
 		void PushState(const std::string& stackId);
 		void PopState(const std::string& stackId);
 		void ClearStacks();
-		void Grow(SymbolList& inout_axiom, int iterations);
 		void Grow(const std::string& line, int iterations);
-		//TODO: Print is too app-specific to fit into Processor
+		void Subsequence(const std::string& seqName);
+		void Gate(bool condition, int depth);
+		void Break(int depth);
+		void Repeat(int depth);
 		void Print(Command* pCmd);
 
 		//output
@@ -62,9 +66,13 @@ namespace Weirwood
 
 		//input&state
 		bool mValid;
+		CommandList::iterator mNextCommand;
+		CommandList::iterator mSequenceBegin;
+		CommandList::iterator mSequenceEnd;
 		Variables mVars;
 		Productions mProductions;
 		StateStackTable mStacks;
+		StateStack mTrash;
 		Sequences mSequences;
 
 		//index tables

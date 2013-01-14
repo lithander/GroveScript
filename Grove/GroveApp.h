@@ -27,6 +27,7 @@ private:
 	Font mFont;
 	__time64_t mScriptModificationTime;
 	std::string mScriptPath;
+	double mScriptParsingTime;
 	void loadScriptFile(const std::string scriptPath);
 	__time64_t queryScriptModTime(const std::string& scriptPath);
 	// This will maintain a list of points which we will draw line segments between

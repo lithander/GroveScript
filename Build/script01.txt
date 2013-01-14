@@ -24,6 +24,17 @@ OUT y
 DIR 30
 MOV 10
 
+SET x, 1
+SET bar.x, 2
+PUSH foo
+SET x, 3
+SET bar.x, 4
+out x //x = 3
+out bar.x //x = 4
+POP foo
+out x //x = 1
+out bar.x //x = 4
+
 #[z && !foo]
 ABBA => (+z)AABAAD(-z)AADBA
 

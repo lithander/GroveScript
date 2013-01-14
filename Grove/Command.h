@@ -8,7 +8,8 @@ namespace Weirwood
 	class Command
 	{
 	public:
-		Command(T op) : mLineNumber(-1), mOperation(op) {}
+		Command(T op) : mLineNumber(-1), mOperation(op), mBlockDepth(0) {}
+		Command(T op, int blockDepth) : mLineNumber(-1), mOperation(op), mBlockDepth(blockDepth) {}
 		~Command(void);
 
 		void SetDebugInfo(int lineNr) { mLineNumber = lineNr; };
@@ -18,15 +19,20 @@ namespace Weirwood
 		{
 			mTokens.push_back(token);
 			mExpressions.push_back(exp);
-			mCount++;
 		}
 		
-		T GetOperation() const
+		inline T GetOperation() const
 		{
 			return mOperation;
 		}
 		
+		inline int GetBlockDepth() const
+		{
+			return mBlockDepth;
+		}
+
 		std::string GetToken(int index) const;
+		std::string GetToken(int index, const std::string& defaultToken) const;
 		double GetNumber(int index) const;
 		bool GetBool(int index) const;
 		bool IsBoolean(int index) const;
@@ -34,7 +40,7 @@ namespace Weirwood
 		int mLineNumber;
 		std::vector<Expression> mExpressions;
 		std::vector<std::string> mTokens;
-		int mCount;
+		int mBlockDepth;
 		T mOperation;
 	};
 
@@ -49,7 +55,7 @@ namespace Weirwood
 	template <typename T>
 	double Command<T>::GetNumber(int index) const
 	{
-		if(index >= mExpressions.size())
+		if(index >= (int)mExpressions.size())
 		{
 			std::stringstream ss;
 			ss << "Line " << mLineNumber << ": Not enough parameters!";
@@ -61,7 +67,7 @@ namespace Weirwood
 	template <typename T>
 	bool Command<T>::GetBool(int index) const
 	{
-		if(index >= mExpressions.size())
+		if(index >= (int)mExpressions.size())
 		{
 			std::stringstream ss;
 			ss << "Line " << mLineNumber << ": Not enough parameters!";
@@ -73,7 +79,7 @@ namespace Weirwood
 	template <typename T>
 	std::string Command<T>::GetToken(int index) const
 	{
-		if(index >= mExpressions.size())
+		if(index >= (int)mExpressions.size())
 		{
 			std::stringstream ss;
 			ss << "Line " << mLineNumber << ": Not enough parameters!";
@@ -83,9 +89,17 @@ namespace Weirwood
 	}
 
 	template <typename T>
+	std::string Command<T>::GetToken(int index, const std::string& defaultToken) const
+	{
+		if(index >= (int)mExpressions.size())
+			return defaultToken;
+		return mTokens[index];
+	}
+
+	template <typename T>
 	bool Command<T>::IsBoolean(int index) const
 	{
-		if(index < mExpressions.size())
+		if(index < (int)mExpressions.size())
 			return mExpressions[index].IsBoolean();
 		else
 			return false;
