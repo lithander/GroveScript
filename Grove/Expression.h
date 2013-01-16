@@ -49,7 +49,6 @@ namespace Weirwood
 		  LG_NEQV
 		};
 
-		
 		enum FunctionSet
 		{
 			VOID_FN,

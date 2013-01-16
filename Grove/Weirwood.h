@@ -48,6 +48,13 @@ namespace Weirwood
 		BREAK_OP,
 		REPEAT_OP
 	};
+		
+	enum Macros
+	{
+		VOID_MC,
+		REPEAT_MC,
+	};
+		
 	
 	//Types
 	typedef std::map<std::string, double> VarTable;

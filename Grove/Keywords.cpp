@@ -27,6 +27,21 @@ InstructionSet Keywords::GetOperation(const std::string& token)
 		return NO_OP;
 }
 
+Macros Keywords::Macro(const std::string& token)
+{
+	return Instance()->GetMacro(token);
+}
+
+Macros Keywords::GetMacro(const std::string& token)
+{
+	std::string op = boost::to_upper_copy(token);
+	std::map<std::string, Macros>::iterator it = mMacros.find(op);
+	if(it != mMacros.end())
+		return it->second;
+	else
+		return VOID_MC;
+}
+
 Expression::FunctionSet Keywords::Function(const std::string& token)
 {
 	return Instance()->GetFunction(token);
@@ -129,4 +144,7 @@ void Keywords::Init()
 	mTokens["FALSE"] = Expression::LG_FALSE;
 	mTokens["IS"] = Expression::LG_EQV;
 	mTokens["ISNT"] = Expression::LG_NEQV;
+
+	//Macros
+	mMacros["REPEAT"] = REPEAT_MC;
 }

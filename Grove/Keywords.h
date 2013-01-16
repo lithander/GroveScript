@@ -9,6 +9,7 @@ namespace Weirwood
 	public:		
 		~Keywords(void);
 		static InstructionSet Operation(const std::string& token);
+		static Macros Macro(const std::string& token);
 		static Expression::FunctionSet Function(const std::string& token);
 		static Expression::TokenType Token(const std::string& token);
 	private:
@@ -18,11 +19,13 @@ namespace Weirwood
 		Keywords(void);
 		void Init();		
 		InstructionSet GetOperation(const std::string& token);
+		Macros GetMacro(const std::string& token);
 		Expression::FunctionSet GetFunction(const std::string& token);
 		Expression::TokenType GetToken(const std::string& token);
 
 		std::map<std::string, InstructionSet> mOperations;
 		std::map<std::string, Expression::FunctionSet> mFunctions;
 		std::map<std::string, Expression::TokenType> mTokens;
+		std::map<std::string, Macros> mMacros;
 	};
 }
