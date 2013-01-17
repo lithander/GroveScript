@@ -85,6 +85,7 @@ namespace Weirwood
 		double AsNumber() const;
 		bool AsBool() const;
 		bool IsBoolean() const;
+		bool IsEmpty() const;
 	private:
 		IExpressionContext* mContextPtr;
 		

@@ -147,4 +147,10 @@ void Keywords::Init()
 
 	//Macros
 	mMacros["REPEAT"] = REPEAT_MC;
+	mMacros["WHILE"] = WHILE_MC;
+	mMacros["UNTIL"] = UNTIL_MC;
+	mMacros["IF"] = IF_MC;
+	mMacros["ELSE"] = ELSE_MC;
+	mMacros["RAISE"] = RAISE_MC;
+	mMacros["LOWER"] = LOWER_MC;
 }

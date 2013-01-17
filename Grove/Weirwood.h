@@ -53,6 +53,12 @@ namespace Weirwood
 	{
 		VOID_MC,
 		REPEAT_MC,
+		WHILE_MC,
+		UNTIL_MC,
+		IF_MC,
+		ELSE_MC,
+		RAISE_MC,
+		LOWER_MC
 	};
 		
 	

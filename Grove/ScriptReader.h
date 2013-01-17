@@ -11,6 +11,7 @@ namespace Weirwood
 		~ScriptReader(void);
 		bool Parse(std::istream& input, Processor* procPtr);
 	private:
+		void Throw(std::string error) const;
 		std::istream* mStreamPtr;
 		bool mCommentFlag;
 		int mBlockDepth;
@@ -33,7 +34,13 @@ namespace Weirwood
 		bool ParseParam(const std::string& token, int& out_pos, std::string& out);
 		void ParseExpression(const std::string& token, Expression* out);
 		//Macro (Code-gen)
+		void ReadBlock(int depth);
 		void GenerateRepeat();
+		void GenerateWhile();
+		void GenerateUntil();
+		void GenerateIf();
+		void GenerateElse();
+		void GenerateMod(char mod);
 		bool mGeneratingCode;
 		int mTempVar;
 		std::string GetTempVar();

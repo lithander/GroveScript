@@ -1,0 +1,57 @@
+set t, abs(cos(time()*60))
+set tt, 3+3*floor(0.5+((time()*120)/360)%5)
+out tt
+set mg, 7
+set ibase, min(mg+1, (11*t)%11)-0.01
+set iterations, floor(ibase)
+out iterations
+set growth, frac(ibase)
+out growth
+
+set r, -3
+repeat tt
+	raise r
+	pos 5*t, 7*t
+	set i, 0
+	set d, ibase*(1.5-t)
+	dir r*sin(time()*50)*720/tt+time()*36
+	grw Trunk X, iterations
+
+#color
+rgb 0.6-(i/iterations), 0.1+0.7*i/iterations, 0
+
+#BranchA
+raise i
+if i=iterations
+	hsv t,1,1
+	if i=mg
+		sze d*(1+growth*5)
+	mov d*growth
+else
+	run color
+	sze d
+	mov d
+set d, d*(0.75+0.02*sin(t*150))
+psh default
+rot -45
+
+#BranchB
+pop default
+rot 45+sin(t*100)*3
+
+X => BranchA F X BranchB F X
+
+#letscount
+set i, 0
+repeat 2
+	while i < 12
+		raise i
+		if i%3=0
+			out i, 'vielfaches von 3
+		else if i%2=1
+			out i, 'ungerade
+		else
+			out i
+	until i <= 0
+		lower i, 2
+		out i

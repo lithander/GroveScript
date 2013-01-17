@@ -254,19 +254,25 @@ void Processor::PopState(const std::string& stackId)
 void Processor::Print(Command* pCmd)
 {
 	std::stringstream ss;
-	ss << "PRINT: '" << pCmd->GetToken(0) << "' = ";
-	try
+	ss << "PRINT:";
+	int i = -1;
+	while(pCmd->HasToken(++i))
 	{
-		if(pCmd->IsBoolean(0))
-			ss << (pCmd->GetBool(0) ? "true" : "false");
-		else
-			ss << pCmd->GetNumber(0);
+		ss << pCmd->GetToken(i);
+		try
+		{
+			if(pCmd->IsExpression(i))
+				if(pCmd->IsBoolean(i))
+					ss << " = " << (pCmd->GetBool(i) ? "true" : "false");
+				else
+					ss << " = " << pCmd->GetNumber(i);
+		}
+		catch(Error e)
+		{
+			ss << "Error: " << e.desc;
+		}
+		catch(...) { };
 	}
-	catch(Error e)
-	{
-		ss << "Error: " << e.desc;
-	}
-	catch(...) { };
 	mLog.push_back(ss.str());
 }
 

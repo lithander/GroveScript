@@ -15,6 +15,15 @@ ScriptReader::~ScriptReader(void)
 {
 }
 
+void ScriptReader::Throw(std::string error) const
+{
+	std::stringstream ss;
+	if(mLineNumber >= 1)
+		ss << "Line " << mLineNumber << ": ";
+	ss << error;
+	throw Error(ss.str());
+}
+
 bool ScriptReader::Parse(std::istream& input, Processor* pProc)
 {
 	mStreamPtr = &input;
@@ -34,6 +43,15 @@ bool ScriptReader::Parse(std::istream& input, Processor* pProc)
 		mProcPtr->Abort(e.desc);
 	}
 	return true;
+}
+
+void ScriptReader::ReadBlock(int depth)
+{
+	//User Code
+	while(ReadLine() && mBlockDepth >= depth)
+		ParseLine();
+	if(!mLine.empty())
+		RestoreLine();
 }
 
 bool ScriptReader::ReadLine()
@@ -146,32 +164,95 @@ void ScriptReader::ParseCommand()
 	{
 		case REPEAT_MC:
 			GenerateRepeat(); break;
+		case WHILE_MC:
+			GenerateWhile(); break;
+		case UNTIL_MC:
+			GenerateUntil(); break;
+		case IF_MC:
+			GenerateIf(); break;
+		case ELSE_MC:
+			GenerateElse(); break;
+		case RAISE_MC:
+			GenerateMod('+'); break;
+		case LOWER_MC:
+			GenerateMod('-'); break;
 		default:
-			std::stringstream ss;
-			ss << "Command at Line " << mLineNumber << " is not understood!";
-			throw Error(ss.str());
+			Throw("Command not known!");
+	}
+}
+
+void ScriptReader::GenerateWhile()
+{
+	if(!ReadParam())
+		Throw("'While' expects condition!");
+	int depth = mBlockDepth+1;
+	GenerateCommand(GATE_OP, mParamToken, depth);
+	ReadBlock(depth);
+	GenerateCommand(REPEAT_OP, depth);
+	GenerateCommand(NO_OP, depth-1);
+}
+
+void ScriptReader::GenerateUntil()
+{
+	if(!ReadParam())
+		Throw("'Until' expects condition!");
+	int depth = mBlockDepth+1;
+	GenerateCommand(GATE_OP, "not ("+mParamToken+")", depth);
+	ReadBlock(depth);
+	GenerateCommand(REPEAT_OP, depth);
+	GenerateCommand(NO_OP, depth-1);
+}
+
+void ScriptReader::GenerateMod(char mod)
+{	
+	if(!ReadParam())
+		Throw("'Raise' expects variable name!");
+	std::string varName = mParamToken;
+	if(ReadParam())
+		GenerateCommand(SET_OP, varName +", "+varName+mod+"("+mParamToken+")", mBlockDepth);
+	else
+		GenerateCommand(SET_OP, varName +", "+varName+mod+"1", mBlockDepth);
+}
+
+
+void ScriptReader::GenerateIf()
+{
+	if(!ReadParam())
+		Throw("'If' expects condition!");
+	int depth = mBlockDepth+1;
+	GenerateCommand(GATE_OP, mParamToken, depth);
+	ReadBlock(depth);
+	GenerateCommand(BREAK_OP, depth);
+}
+
+void ScriptReader::GenerateElse()
+{
+
+	int depth = mBlockDepth+1;
+	GenerateCommand(GATE_OP, "true", depth);
+	if(mPos != mLine.npos)
+	{
+		int nextPos = mLine.find(' ', mPos+1);
+		std::string remains = mLine.substr(mPos+1, nextPos-mPos-1);
+		if(!remains.empty() && Keywords::Macro(remains) != IF_MC)
+			Throw("'Else' can only be followed by 'If'!");
+		mPos = nextPos;
+		GenerateIf();
 	}
 }
 
 void ScriptReader::GenerateRepeat()
 {
 	if(!ReadParam())
-	{
-		std::stringstream ss;
-		ss << "Macro Repeat in Line " << mLineNumber << " requires iteration count!";
-		throw Error(ss.str());
-	}
+		Throw("'Repeat' expects iteration number!");
 	std::string varName = GetTempVar();
 	GenerateCommand(SET_OP, varName+", "+mParamToken, mBlockDepth);//set _c0, expression
 	int depth = mBlockDepth+1;
-	GenerateCommand(GATE_OP, varName+"> 0", depth);				//  cnd _c0 > 0"
-	//User Code
-	while(ReadLine() && mBlockDepth >= depth)
-		ParseLine();
-	if(!mLine.empty())
-		RestoreLine();
-	GenerateCommand(SET_OP, varName+","+varName+"-1", depth);		//  set _c0, _c0-1
+	GenerateCommand(GATE_OP, varName+"> 0", depth);				   //  cnd _c0 > 0"
+	ReadBlock(depth);
+	GenerateCommand(SET_OP, varName+","+varName+"-1", depth);	//  set _c0, _c0-1
 	GenerateCommand(REPEAT_OP, depth);							//  repeat
+	GenerateCommand(NO_OP, depth-1);							// block end
 	ReleaseTempVar();
 }
 
@@ -240,6 +321,9 @@ bool ScriptReader::ParseParam(const std::string& token, int& inout_pos, std::str
 
 void ScriptReader::ParseExpression(const std::string& token, Expression* out)
 {
+	//detect string-literal
+	if(token.find('\'') != token.npos)
+		return;
 	//PARSE
 	std::stringstream stream = std::stringstream(token);
 	//skip blanks

@@ -21,6 +21,11 @@ namespace Weirwood
 			mExpressions.push_back(exp);
 		}
 		
+		inline bool Command<T>::HasToken(int index) const
+		{
+			return (index < (int)mExpressions.size());
+		}
+		
 		inline T GetOperation() const
 		{
 			return mOperation;
@@ -36,6 +41,7 @@ namespace Weirwood
 		double GetNumber(int index) const;
 		bool GetBool(int index) const;
 		bool IsBoolean(int index) const;
+		bool IsExpression(int index) const;
 	protected:
 		int mLineNumber;
 		std::vector<Expression> mExpressions;
@@ -104,5 +110,16 @@ namespace Weirwood
 		else
 			return false;
 	}
+
+	template <typename T>
+	bool Command<T>::IsExpression(int index) const
+	{
+		if(index < (int)mExpressions.size())
+			return !mExpressions[index].IsEmpty();
+		else
+			return false;
+	}
+
+
 }
 

@@ -45,6 +45,11 @@ void Expression::Throw(std::string error) const
 	throw Error(ss.str());
 }
 
+bool Expression::IsEmpty() const
+{
+	return mTokens.empty();
+}
+
 bool Expression::IsBoolean() const
 {
 	for(std::vector<TokenType>::const_iterator it = mTokens.begin(); it != mTokens.end(); it++)
@@ -120,6 +125,12 @@ bool Expression::EvalL4() const
 		case LG_FALSE:
 			mType = mTokens[mTokenIndex++];
 			return false;
+		case LP :
+			{
+			bool e = EvalL1();
+			VerifyRP();
+			return e;
+			}
 		case LG_NOT:
 			return !EvalL4();
 	}
