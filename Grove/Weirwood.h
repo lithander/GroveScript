@@ -42,7 +42,8 @@ namespace Weirwood
 		PUSH_OP,
 		POP_OP,
 		OUT_OP,
-		SUBSEQ_OP,
+		EXE_OP,
+		SEED_OP,
 		GROW_OP,
 		GATE_OP,
 		BREAK_OP,
@@ -71,6 +72,7 @@ namespace Weirwood
 	typedef std::vector<CommandList> Sequences;
 	typedef std::vector<ProductionRule> Productions;
 	typedef std::vector<double> Variables;
+	typedef std::vector<SymbolList> Structures;
 
 	//Utility
 	void SplitString(const std::string& input, StringList& output);

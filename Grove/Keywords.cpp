@@ -97,8 +97,9 @@ void Keywords::Init()
 	mOperations["PSH"] = PUSH_OP;
 	mOperations["POP"] = POP_OP;
 	mOperations["OUT"] = OUT_OP;
-	mOperations["RUN"] = SUBSEQ_OP;
+	mOperations["RUN"] = EXE_OP;
 	mOperations["GRW"] = GROW_OP;
+	mOperations["SED"] = SEED_OP;
 	//TODO: hidden commands
 	mOperations["CND"] = GATE_OP;
 	mOperations["BRK"] = BREAK_OP; 
@@ -115,7 +116,8 @@ void Keywords::Init()
 	mOperations["PUSH"] = PUSH_OP;
 	mOperations["POP"] = POP_OP;
 	mOperations["OUT"] = OUT_OP;
-	mOperations["RUN"] = SUBSEQ_OP;
+	mOperations["EXECUTE"] = EXE_OP;
+	mOperations["SEED"] = SEED_OP;
 	mOperations["GROW"] = GROW_OP;
 
 	//Expression FUNCTIONS

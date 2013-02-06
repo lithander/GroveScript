@@ -79,27 +79,6 @@ void Processor::Run(const std::string& seqId)
 	}
 }
 
-void Processor::Grow(SymbolList& symbols, int iterations)
-{
-	if(iterations <= 0)
-		return;
-
-	SymbolList::iterator it = symbols.begin();
-	while(it != symbols.end())
-	{
-		bool match = false;
-		for(Productions::iterator ruleIt = mProductions.begin(); ruleIt != mProductions.end(); ruleIt++)
-		{
-			match = ruleIt->Match(symbols, it);
-			if(match)
-				break;
-		}
-		if(!match)
-			it++;
-	}
-	Grow(symbols, --iterations);
-}
-
 void Processor::ExecuteSymbols(SymbolList& symbols)
 {
 	for(SymbolList::iterator seqIt = symbols.begin(); seqIt != symbols.end(); seqIt++)
@@ -158,10 +137,12 @@ void Processor::ExecuteCommand(Processor::Command* pCmd)
 		PopState(pCmd->GetToken(0, "default")); break;
 	case OUT_OP:
 		Print(pCmd); break;
-	case SUBSEQ_OP:
-		Subsequence(pCmd->GetToken(0)); break;
+	case SEED_OP:
+		Seed(pCmd->GetToken(0), pCmd->GetToken(1)); break;
 	case GROW_OP:
-		Grow(pCmd->GetToken(0), (int)pCmd->GetNumber(1)); break;
+		Grow(pCmd->GetToken(0), pCmd->GetToken(1)); break;
+	case EXE_OP:
+		Execute(pCmd->GetToken(0)); break;
 	case GATE_OP:
 		Gate(pCmd->GetBool(0), pCmd->GetBlockDepth()); break;
 	case BREAK_OP:
@@ -200,31 +181,48 @@ void Processor::Repeat(int depth)
 		mNextCommand--;
 }
 
-void Processor::Grow(const std::string& line, int iterations)
+void Processor::Seed(const std::string& structure, const std::string& axiom)
 {
-	SymbolList* pSymbols = NULL;
-	if(!mGrowSymbols.empty())
-	{
-		pSymbols = mGrowSymbols.top();
-		mGrowSymbols.pop();
-	}
-	else 
-		pSymbols = new SymbolList();
-
-	pSymbols->clear();
-	FillSymbolList(line, *pSymbols);
-	Grow(*pSymbols, iterations);
-	ExecuteSymbols(*pSymbols);
-	mGrowSymbols.push(pSymbols);
+	int index = GetStructureIndex(structure);
+	mStructures[index].clear();
+	FillSymbolList(axiom, mStructures[index]);
 }
 
-void Processor::Subsequence(const std::string& seqName)
+void Processor::Grow(const std::string& structure, const std::string& ruleSet)
 {
-	IndexTable::const_iterator it = mSequenceIndexTable.find(seqName);
+	//activate rules in ruleset
+	for(Productions::iterator ruleIt = mProductions.begin(); ruleIt != mProductions.end(); ruleIt++)
+		ruleIt->Active = ruleIt->HasTag(ruleSet);
+
+	//apply active rules on structure
+	int index = GetStructureIndex(structure);
+	SymbolList& symbols = mStructures[index];
+	SymbolList::iterator it = symbols.begin();
+	SymbolList::iterator end = symbols.end();
+	while(it != end)
+	{
+		bool match = false;
+		for(Productions::iterator ruleIt = mProductions.begin(); ruleIt != mProductions.end(); ruleIt++)
+		{
+			match = ruleIt->Active && ruleIt->Match(symbols, it);
+			if(match)
+				break;
+		}
+		if(!match)
+			it++;
+	}
+
+}
+
+void Processor::Execute(const std::string& name)
+{
+	IndexTable::const_iterator it = mSequenceIndexTable.find(name);
 	if(it != mSequenceIndexTable.end())
 		ExecuteSequence(mSequences[it->second]);
+	else if((it = mStructureIndexTable.find(name)) != mStructureIndexTable.end())
+		ExecuteSymbols(mStructures[it->second]);
 	else
-		throw Error("Sequence '"+seqName+"' is not defined!");
+		throw Error("Neither Sequence nor Structure '"+name+"' is not defined!");
 }
 
 void Processor::PushState(const std::string& stackId)
@@ -351,6 +349,21 @@ int Processor::GetSequenceIndex(const std::string& name)
 		int index = mSequences.size();
 		mSequences.resize(index+1);
 		mSequenceIndexTable[name] = index; //eg last index after resize
+		return index;
+	}
+}
+
+int Processor::GetStructureIndex(const std::string& name)
+{
+	IndexTable::iterator it = mStructureIndexTable.find(name);
+	if(it != mStructureIndexTable.end())
+		return it->second;
+	else
+	{
+		//insert
+		int index = mStructures.size();
+		mStructures.resize(index+1);
+		mStructureIndexTable[name] = index; //eg last index after resize
 		return index;
 	}
 }

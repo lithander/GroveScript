@@ -46,15 +46,15 @@ namespace Weirwood
 		void ExecuteSymbols(SymbolList& symbols);
 		void ExecuteSequence(CommandList& sequence);
 		void ExecuteCommand(Command* cmd);
-		void Grow(SymbolList& inout_axiom, int iterations);
 
 		//Commands
 		void SetVariable(const std::string& name, double value);
 		void PushState(const std::string& stackId);
 		void PopState(const std::string& stackId);
 		void ClearStacks();
-		void Grow(const std::string& line, int iterations);
-		void Subsequence(const std::string& seqName);
+		void Seed(const std::string& structure, const std::string& axiom);
+		void Grow(const std::string& structure, const std::string& ruleSet);
+		void Execute(const std::string& structOrSeqName);
 		void Gate(bool condition, int depth);
 		void Break(int depth);
 		void Repeat(int depth);
@@ -74,14 +74,17 @@ namespace Weirwood
 		StateStackTable mStacks;
 		StateStack mTrash;
 		Sequences mSequences;
+		Structures mStructures;
 
 		//index tables
+		IndexTable mStructureIndexTable;
 		IndexTable mSequenceIndexTable;
 		IndexTable mSymbolIndexTable;
 		IndexTable mVarIndexTable;
 
 		int GetSequenceIndex(const std::string& name);
 		int GetSymbolIndex(const std::string& name);
+		int GetStructureIndex(const std::string& name);
 						
 		//tmp
 		std::stack<State*> mStateCache;

@@ -24,11 +24,11 @@ void ScriptReader::Throw(std::string error) const
 	throw Error(ss.str());
 }
 
-bool ScriptReader::Parse(std::istream& input, Processor* pProc)
+bool ScriptReader::Read(std::istream& input, Processor* pProc)
 {
 	mStreamPtr = &input;
 	mProcPtr = pProc;
-	mSeqId = "Root";
+	mId = "Root";
 	mLine = "";
 	mCommentFlag = false;
 	mLineNumber = 0;
@@ -94,6 +94,10 @@ bool ScriptReader::ReadParam()
 	return ParseParam(mLine, mPos, mParamToken);
 }
 
+//******************
+// SCRIPT PARSING //
+//******************
+
 void ScriptReader::ParseLine()
 {
 	//remove tabs before parsing
@@ -117,7 +121,7 @@ void ScriptReader::ParseLine()
 			
 	//sequence
 	if(mLine.find('#') == 0)
-		mSeqId = mLine.substr(1);
+		mId = mLine.substr(1);
 	//production
 	else if(mLine.find("=>") != mLine.npos)
 		ParseProductionRule();
@@ -129,14 +133,16 @@ void ScriptReader::ParseLine()
 void ScriptReader::ParseProductionRule()
 {
 	ProductionRule* pRule = mProcPtr->AppendProduction();
+		
+	int pos = -1;
+	std::string tag;
+	while(ParseParam(mId, pos, tag))
+		pRule->AddTag(tag);	
 
 	int splitPosition = mLine.find("=>", 0);
 	std::string from = mLine.substr(0, splitPosition);
 	std::string to = mLine.substr(splitPosition+2);
-	
-	pRule->Predecessor().clear();
 	mProcPtr->FillSymbolList(from, pRule->Predecessor());
-	pRule->Successor().clear();
 	mProcPtr->FillSymbolList(to, pRule->Successor());
 }
 
@@ -147,7 +153,7 @@ void ScriptReader::ParseCommand()
 	InstructionSet op = Keywords::Operation(mToken);
 	if(op != NO_OP)
 	{
-		Processor::Command* pCmd = mProcPtr->AppendCommand(mSeqId, op, mBlockDepth); 
+		Processor::Command* pCmd = mProcPtr->AppendCommand(mId, op, mBlockDepth); 
 		pCmd->SetDebugInfo(mLineNumber);
 		while(ReadParam())
 		{
@@ -181,131 +187,28 @@ void ScriptReader::ParseCommand()
 	}
 }
 
-void ScriptReader::GenerateWhile()
-{
-	if(!ReadParam())
-		Throw("'While' expects condition!");
-	int depth = mBlockDepth+1;
-	GenerateCommand(GATE_OP, mParamToken, depth);
-	ReadBlock(depth);
-	GenerateCommand(REPEAT_OP, depth);
-	GenerateCommand(NO_OP, depth-1);
-}
-
-void ScriptReader::GenerateUntil()
-{
-	if(!ReadParam())
-		Throw("'Until' expects condition!");
-	int depth = mBlockDepth+1;
-	GenerateCommand(GATE_OP, "not ("+mParamToken+")", depth);
-	ReadBlock(depth);
-	GenerateCommand(REPEAT_OP, depth);
-	GenerateCommand(NO_OP, depth-1);
-}
-
-void ScriptReader::GenerateMod(char mod)
-{	
-	if(!ReadParam())
-		Throw("'Raise' expects variable name!");
-	std::string varName = mParamToken;
-	if(ReadParam())
-		GenerateCommand(SET_OP, varName +", "+varName+mod+"("+mParamToken+")", mBlockDepth);
-	else
-		GenerateCommand(SET_OP, varName +", "+varName+mod+"1", mBlockDepth);
-}
-
-
-void ScriptReader::GenerateIf()
-{
-	if(!ReadParam())
-		Throw("'If' expects condition!");
-	int depth = mBlockDepth+1;
-	GenerateCommand(GATE_OP, mParamToken, depth);
-	ReadBlock(depth);
-	GenerateCommand(BREAK_OP, depth);
-}
-
-void ScriptReader::GenerateElse()
-{
-
-	int depth = mBlockDepth+1;
-	GenerateCommand(GATE_OP, "true", depth);
-	if(mPos != mLine.npos)
-	{
-		int nextPos = mLine.find(' ', mPos+1);
-		std::string remains = mLine.substr(mPos+1, nextPos-mPos-1);
-		if(!remains.empty() && Keywords::Macro(remains) != IF_MC)
-			Throw("'Else' can only be followed by 'If'!");
-		mPos = nextPos;
-		GenerateIf();
-	}
-}
-
-void ScriptReader::GenerateRepeat()
-{
-	if(!ReadParam())
-		Throw("'Repeat' expects iteration number!");
-	std::string varName = GetTempVar();
-	GenerateCommand(SET_OP, varName+", "+mParamToken, mBlockDepth);//set _c0, expression
-	int depth = mBlockDepth+1;
-	GenerateCommand(GATE_OP, varName+"> 0", depth);				   //  cnd _c0 > 0"
-	ReadBlock(depth);
-	GenerateCommand(SET_OP, varName+","+varName+"-1", depth);	//  set _c0, _c0-1
-	GenerateCommand(REPEAT_OP, depth);							//  repeat
-	GenerateCommand(NO_OP, depth-1);							// block end
-	ReleaseTempVar();
-}
-
-void ScriptReader::GenerateCommand(InstructionSet op, int depth)
-{
-	mProcPtr->AppendCommand(mSeqId, op, depth);
-}		
-
-void ScriptReader::GenerateCommand(InstructionSet op, const std::string& params, int depth)
-{
-	mGeneratingCode = true;
-	Processor::Command* pCmd = mProcPtr->AppendCommand(mSeqId, op, depth); 
-	int pos = -1;
-	std::string param;
-	while(ParseParam(params, pos, param))
-	{
-		Expression exp(mProcPtr);
-		ParseExpression(param, &exp);
-		pCmd->PushParam(param, exp); //exp will be copied. It's 64 bytes so it should be okay. (std::string is 32byte in comparision)
-	}
-	mGeneratingCode = false;
-}
-
-std::string ScriptReader::GetTempVar()
-{
-	std::stringstream ss;
-	ss << "_c" << mTempVar++;
-	return ss.str();
-}
-
-void ScriptReader::ReleaseTempVar()
-{
-	mTempVar--;
-}
-
 bool ScriptReader::ParseParam(const std::string& token, int& inout_pos, std::string& out)
 {
+	out.clear();
 	int end = token.size();
 	if(inout_pos >= end)
 		return false;
-	//split at each occurance of ',' outside of parantheses
-	int nextPos = inout_pos;
 	int parenDepth = 0;
-	while(++nextPos < end)
+	//skip leading whitespaces
+	while(::isspace(token.at(inout_pos+1)))
+		inout_pos++;
+	//split at each occurance of ',' outside of parantheses
+	while(++inout_pos < end)
 	{
-		char c = token.at(nextPos);
+		char c = token.at(inout_pos);
+		if(c == ',' && parenDepth == 0)
+			break; //split here
 		if(c == '(')
 			parenDepth++;
 		else if(c == ')')
 			parenDepth--;
-		else if(c == ',' && parenDepth == 0)
-			break; //split here
-				//Create Expression
+		
+		out.push_back(c);
 	}
 	//Check if parenthesis were nested okay
 	if(parenDepth != 0)
@@ -314,8 +217,6 @@ bool ScriptReader::ParseParam(const std::string& token, int& inout_pos, std::str
 		ss << "Parentheses are messed up in Line " << mLineNumber;
 		throw Error(ss.str());
 	}
-	out = token.substr(inout_pos+1, nextPos-inout_pos-1);
-	inout_pos = nextPos;
 	return true;
 }
 
@@ -418,5 +319,115 @@ void ScriptReader::ParseExpression(const std::string& token, Expression* out)
 				break;
 		}
 	}
+}
+
+//*****************************
+// COMMAND GENERATION MACROS //
+//*****************************
+
+std::string ScriptReader::GetTempVar()
+{
+	std::stringstream ss;
+	ss << "_c" << mTempVar++;
+	return ss.str();
+}
+
+void ScriptReader::ReleaseTempVar()
+{
+	mTempVar--;
+}
+
+void ScriptReader::GenerateWhile()
+{
+	if(!ReadParam())
+		Throw("'While' expects condition!");
+	int depth = mBlockDepth+1;
+	GenerateCommand(GATE_OP, mParamToken, depth);
+	ReadBlock(depth);
+	GenerateCommand(REPEAT_OP, depth);
+	GenerateCommand(NO_OP, depth-1);
+}
+
+void ScriptReader::GenerateUntil()
+{
+	if(!ReadParam())
+		Throw("'Until' expects condition!");
+	int depth = mBlockDepth+1;
+	GenerateCommand(GATE_OP, "not ("+mParamToken+")", depth);
+	ReadBlock(depth);
+	GenerateCommand(REPEAT_OP, depth);
+	GenerateCommand(NO_OP, depth-1);
+}
+
+void ScriptReader::GenerateMod(char mod)
+{	
+	if(!ReadParam())
+		Throw("'Raise' expects variable name!");
+	std::string varName = mParamToken;
+	if(ReadParam())
+		GenerateCommand(SET_OP, varName +", "+varName+mod+"("+mParamToken+")", mBlockDepth);
+	else
+		GenerateCommand(SET_OP, varName +", "+varName+mod+"1", mBlockDepth);
+}
+
+
+void ScriptReader::GenerateIf()
+{
+	if(!ReadParam())
+		Throw("'If' expects condition!");
+	int depth = mBlockDepth+1;
+	GenerateCommand(GATE_OP, mParamToken, depth);
+	ReadBlock(depth);
+	GenerateCommand(BREAK_OP, depth);
+}
+
+void ScriptReader::GenerateElse()
+{
+	int depth = mBlockDepth+1;
+	GenerateCommand(GATE_OP, "true", depth);
+	if(mPos != mLine.npos)
+	{
+		int nextPos = mLine.find(' ', mPos+1);
+		std::string remains = mLine.substr(mPos+1, nextPos-mPos-1);
+		if(!remains.empty() && Keywords::Macro(remains) != IF_MC)
+			Throw("'Else' can only be followed by 'If'!");
+		mPos = nextPos;
+		GenerateIf();
+	}
+}
+
+void ScriptReader::GenerateRepeat()
+{
+	if(!ReadParam())
+		Throw("'Repeat' expects iteration number!");
+	std::string varName = GetTempVar();
+	GenerateCommand(SET_OP, varName+", "+mParamToken, mBlockDepth);//set _c0, expression
+	int depth = mBlockDepth+1;
+	GenerateCommand(GATE_OP, varName+"> 0", depth);				   //  cnd _c0 > 0"
+	ReadBlock(depth);
+	GenerateCommand(SET_OP, varName+","+varName+"-1", depth);	//  set _c0, _c0-1
+	GenerateCommand(REPEAT_OP, depth);							//  repeat
+	GenerateCommand(NO_OP, depth-1);							// block end
+	ReleaseTempVar();
+}
+
+void ScriptReader::GenerateCommand(InstructionSet op, int depth)
+{
+	mProcPtr->AppendCommand(mId, op, depth);
+}		
+
+void ScriptReader::GenerateCommand(InstructionSet op, const std::string& params, int depth)
+{
+	mGeneratingCode = true;
+	Processor::Command* pCmd = mProcPtr->AppendCommand(mId, op, depth); 
+	int pos = -1;
+	std::string param;
+	while(ParseParam(params, pos, param))
+	{
+		Expression exp(mProcPtr);
+		ParseExpression(param, &exp);
+		pCmd->PushParam(param, exp); //exp will be copied. It's 64 bytes so it should be okay. (std::string is 32byte in comparision)
+	}
+	mGeneratingCode = false;
 }
 

@@ -9,14 +9,14 @@ namespace Weirwood
 	public:
 		ScriptReader(void);
 		~ScriptReader(void);
-		bool Parse(std::istream& input, Processor* procPtr);
+		bool Read(std::istream& input, Processor* procPtr);
 	private:
 		void Throw(std::string error) const;
 		std::istream* mStreamPtr;
 		bool mCommentFlag;
 		int mBlockDepth;
 		int mLineNumber;
-		std::string mSeqId;
+		std::string mId;
 		std::string mLine;
 		std::string mToken;
 		int mPos;

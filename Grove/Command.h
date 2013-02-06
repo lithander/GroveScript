@@ -39,6 +39,7 @@ namespace Weirwood
 		std::string GetToken(int index) const;
 		std::string GetToken(int index, const std::string& defaultToken) const;
 		double GetNumber(int index) const;
+		double GetNumber(int index, double defaultValue) const;
 		bool GetBool(int index) const;
 		bool IsBoolean(int index) const;
 		bool IsExpression(int index) const;
@@ -68,6 +69,14 @@ namespace Weirwood
 			throw Error(ss.str());
 		}
 		return mExpressions[index].AsNumber();
+	}
+
+	template <typename T>
+	double Command<T>::GetNumber(int index, double defaultValue) const
+	{
+		if(index >= (int)mExpressions.size())
+			return defaultValue;
+		return mExpressions[index].AsNumber();;
 	}
 
 	template <typename T>

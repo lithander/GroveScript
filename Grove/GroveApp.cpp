@@ -147,7 +147,7 @@ void Grove::loadScriptFile(const std::string scriptPath)
 	ScriptReader reader;
 	ci::Timer ti;
 	ti.start();
-	reader.Parse(stream, mProcessorPtr);
+	reader.Read(stream, mProcessorPtr);
 	ti.stop();
 	mScriptParsingTime = ti.getSeconds();
 	stream.close();
