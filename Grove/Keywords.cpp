@@ -120,7 +120,7 @@ void Keywords::Init()
 	mOperations["EXECUTE"] = EXE_OP;
 	mOperations["SEED"] = SEED_OP;
 	mOperations["GROW"] = GROW_OP;
-	//mOperations["SRND"] = SRAND_OP;
+	mOperations["DICE"] = SRAND_OP;
 
 	//Expression FUNCTIONS
 	mFunctions["SIN"] = Expression::SIN_FN;

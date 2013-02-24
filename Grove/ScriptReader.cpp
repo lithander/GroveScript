@@ -6,7 +6,7 @@
 
 using namespace Weirwood;
 
-ScriptReader::ScriptReader(void) : mProcPtr(NULL), mLineNumber(-1), mBlockDepth(0), mGeneratingCode(false), mStreamPtr(NULL)
+ScriptReader::ScriptReader(void) : mProcPtr(NULL), mLineNumber(-1), mBlockDepth(0), mGeneratingCode(false), mStreamPtr(NULL), mRulePtr(NULL)
 {
 }
 
@@ -132,12 +132,12 @@ void ScriptReader::ParseLine()
 
 void ScriptReader::ParseProductionRule()
 {
-	ProductionRule* pRule = mProcPtr->AppendProduction();
+	mRulePtr = mProcPtr->AppendProduction();
 		
 	int pos = -1;
 	std::string tag;
 	while(ParseParam(mId, pos, tag))
-		pRule->AddTag(tag);
+		mRulePtr->AddTag(tag);
 
 	//condition
 	pos = mLine.find(':');
@@ -146,14 +146,18 @@ void ScriptReader::ParseProductionRule()
 		Expression condition = Expression(mProcPtr);
 		condition.SetDebugInfo(mLineNumber);
 		ParseExpression(mLine.substr(0, mLine.find(':')), &condition);
-		pRule->SetCondition(condition);
+		mRulePtr->SetCondition(condition);
 	}
 
 	int splitPosition = mLine.find("=>");
 	std::string from = mLine.substr(pos+1, splitPosition-pos-1);
 	std::string to = mLine.substr(splitPosition+2);
-	mProcPtr->FillSymbolList(from, pRule->Predecessor());
-	mProcPtr->FillSymbolList(to, pRule->Successor());
+	mProcPtr->ParseSymbolList(from, mRulePtr->Predecessor());
+	mProcPtr->ParseSymbolList(to, mRulePtr->Successor());
+
+	int depth = mBlockDepth+1;
+	ReadBlock(depth); //as long as mRulePtr is set, commands will get appended there
+	mRulePtr = NULL;
 }
 
 void ScriptReader::ParseCommand()
@@ -163,7 +167,7 @@ void ScriptReader::ParseCommand()
 	InstructionSet op = Keywords::Operation(mToken);
 	if(op != NO_OP)
 	{
-		Processor::Command* pCmd = mProcPtr->AppendCommand(mId, op, mBlockDepth); 
+		Instruction* pCmd = GenerateCommand(op, mBlockDepth);
 		pCmd->SetDebugInfo(mLineNumber);
 		while(ReadParam())
 		{
@@ -419,15 +423,18 @@ void ScriptReader::GenerateRepeat()
 	ReleaseTempVar();
 }
 
-void ScriptReader::GenerateCommand(InstructionSet op, int depth)
+Instruction* ScriptReader::GenerateCommand(InstructionSet op, int depth)
 {
-	mProcPtr->AppendCommand(mId, op, depth);
+	if(mRulePtr)
+		return mRulePtr->AppendCommand(op, depth);
+	else
+		return mProcPtr->AppendCommand(mId, op, depth); 
 }		
 
 void ScriptReader::GenerateCommand(InstructionSet op, const std::string& params, int depth)
 {
 	mGeneratingCode = true;
-	Processor::Command* pCmd = mProcPtr->AppendCommand(mId, op, depth); 
+	Instruction* pCmd = GenerateCommand(op, depth); 
 	int pos = -1;
 	std::string param;
 	while(ParseParam(params, pos, param))

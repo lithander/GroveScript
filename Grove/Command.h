@@ -55,8 +55,6 @@ namespace Weirwood
 	template <typename T>
 	Command<T>::~Command(void)
 	{
-		for(std::vector<Expression*>::iterator it = mExpressions.begin(); it != mExpressions.end(); it++)
-			delete *it;
 	}
 	
 	template <typename T>

@@ -13,20 +13,26 @@ namespace Weirwood
 	private:
 		void Throw(std::string error) const;
 		std::istream* mStreamPtr;
+		Processor* mProcPtr;
+		//State
 		bool mCommentFlag;
 		int mBlockDepth;
 		int mLineNumber;
+		int mPos;
 		std::string mId;
 		std::string mLine;
 		std::string mToken;
-		int mPos;
 		std::string mParamToken;
-		Processor* mProcPtr;
+		ProductionRule* mRulePtr;
+		//Helpers
 		bool ReadLine();
 		bool ReadToken();
 		bool ReadParam();
 		std::string mStoredLine;
 		void RestoreLine() { mStoredLine = mLine; };
+		int mTempVar;
+		std::string GetTempVar();
+		void ReleaseTempVar();
 		//Parsing
 		void ParseLine();
 		void ParseProductionRule();
@@ -42,10 +48,7 @@ namespace Weirwood
 		void GenerateElse();
 		void GenerateMod(char mod);
 		bool mGeneratingCode;
-		int mTempVar;
-		std::string GetTempVar();
-		void ReleaseTempVar();
-		void GenerateCommand(InstructionSet op, int depth);
+		Instruction* GenerateCommand(InstructionSet op, int depth);
 		void GenerateCommand(InstructionSet op, const std::string& params, int depth);
 	};
 }

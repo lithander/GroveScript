@@ -5,6 +5,11 @@
 
 using namespace Weirwood;
 
+Expression::Expression() : mContextPtr(NULL), mLineNumber(-1), mVarsPtr(NULL)
+{
+
+}
+
 Expression::Expression(IExpressionContext* pContext) : mContextPtr(pContext), mLineNumber(-1), mVarsPtr(NULL)
 {
 }

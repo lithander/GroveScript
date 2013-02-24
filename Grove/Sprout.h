@@ -18,6 +18,7 @@ namespace Weirwood
 
 		Sprout(ci::Vec2f origin, float unitLength);
 		~Sprout(void);
+		void SetOrigin(ci::Vec2f origin);
 
 		void ToState(State& out_state);
 		void FromState(const State& state);

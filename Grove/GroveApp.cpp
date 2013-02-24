@@ -42,12 +42,20 @@ void Grove::setup()
 void Grove::keyDown( KeyEvent event )
 {
 	char input = event.getChar();
-	if( input == 'f' )
-		setFullScreen( !isFullScreen() );
-	if( input == 's' )
+	if(input == 'f' )
+		toggleFullscreen();
+	else if(input == 's' )
 		mStatsEnabled = !mStatsEnabled;
-	if( input == ' ' )
+	else if(input == 'd' )
+		mLogEnabled = !mLogEnabled;
+	else if(input == ' ' )
 		loadScriptFile(mScriptPath);
+}
+
+void Grove::toggleFullscreen()
+{
+	setFullScreen( !isFullScreen() );
+	mSproutPtr->SetOrigin(getWindowSize() / 2);
 }
 
 void Grove::update() 
@@ -62,10 +70,10 @@ void Grove::draw()
 	if(!mScriptPath.empty())
 	{
 		gl::clear( Color::black() );
-		//PROCESS COMMANDS
 		gl::setMatricesWindow( getWindowSize() );
 		
 		ci::Timer t;
+		//run "Root" sequence
 		if(mProcessorPtr->IsValid())
 		{
 			t.start();
@@ -78,7 +86,7 @@ void Grove::draw()
 		if(mStatsEnabled)
 			printStats(textOutPos);
 		
-		//PRINT COMMANDS
+		//print accumulated LogMessages
 		gl::enableAlphaBlending();
 		std::string lastToken = "";
 		for(Processor::LogMessageList::iterator it = mProcessorPtr->LogMessages().begin(); it != mProcessorPtr->LogMessages().end(); it++)
@@ -93,7 +101,7 @@ void Grove::draw()
 				gl::drawString(msg.substr(6), textOutPos, ColorA::hex(0xFF0000), mFont);
 				textOutPos.y += mFont.getSize();
 			}
-			else if(posPrint != msg.npos)
+			else if(posPrint != msg.npos && mLogEnabled)
 			{
 				gl::drawString(msg.substr(6), textOutPos, ColorA::hex(0x00FFFF), mFont);
 				textOutPos.y += mFont.getSize();
@@ -147,12 +155,12 @@ void Grove::printStats(Vec2f& textOutPos)
 	textOutPos.y += mFont.getSize();
 	ss.str("");
 
-	ss << "Execution Time:    " << mLastRunTime << "s " << int(1.0 / mLastRunTime) << "/s";
+	ss << "Execution Time:  " << mLastRunTime << "s " << int(1.0 / mLastRunTime) << "/s";
 	gl::drawString(ss.str(), textOutPos, ColorA::hex(0xFFAAAA), mFont);
 	textOutPos.y += mFont.getSize();
 	ss.str("");
 
-	ss << "Average Exec.Time: " << mRunTimeSum / mSampleCount << "s " << int(mSampleCount / mRunTimeSum) << "/s";
+	ss << "Avg. Exec. Time: " << mRunTimeSum / mSampleCount << "s " << int(mSampleCount / mRunTimeSum) << "/s";
 	gl::drawString(ss.str(), textOutPos, ColorA::hex(0xFFAAAA), mFont);
 	textOutPos.y += mFont.getSize();
 	ss.str("");

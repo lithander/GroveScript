@@ -11,6 +11,10 @@ using namespace Weirwood;
 Processor::Processor(Sprout* sproutPtr)
 {
 	mSproutPtr = sproutPtr;
+	mVars.reserve(20);
+	mProductions.reserve(20);
+	mSequences.reserve(20);
+	mStructures.reserve(10);
 }
 
 Processor::~Processor(void)
@@ -31,16 +35,20 @@ void Processor::Reset()
 	mLog.clear();
 	mSproutPtr->Reset();
 
+	//delete Instructions appended to Sequences
+	for(Sequences::iterator it = mSequences.begin(); it != mSequences.end(); it++)
+		for(CommandList::iterator it2 = it->begin(); it2 != it->end(); it2++)
+			delete *it2;
 	mVars.clear();
 	mProductions.clear();
 	mSequences.clear();
+	mStructures.clear();
 
 	//index tables
 	mSequenceIndexTable.clear();
 	mSymbolIndexTable.clear();
 	mVarIndexTable.clear();
-
-	//TODO: delete Commands from Sequences
+	mStructureIndexTable.clear();
 }
 
 void Processor::ClearStacks()
@@ -99,7 +107,7 @@ void Processor::ExecuteSequence(CommandList& seq)
 	mNextCommand = mSequenceBegin = seq.begin();
 	while(mNextCommand != mSequenceEnd)
 	{
-		Processor::Command* pCmd = *mNextCommand;
+		Instruction* pCmd = *mNextCommand;
 		mNextCommand++;
 		ExecuteCommand(pCmd);
 	}
@@ -109,7 +117,7 @@ void Processor::ExecuteSequence(CommandList& seq)
 	mSequenceEnd = end;
 }
 
-void Processor::ExecuteCommand(Processor::Command* pCmd)
+void Processor::ExecuteCommand(Instruction* pCmd)
 {
 	//mLog.push_back(pCmd->source);
 	InstructionSet op = pCmd->GetOperation();
@@ -187,7 +195,7 @@ void Processor::Seed(const std::string& structure, const std::string& axiom)
 {
 	int index = GetStructureIndex(structure);
 	mStructures[index].clear();
-	FillSymbolList(axiom, mStructures[index]);
+	ParseSymbolList(axiom, mStructures[index]);
 }
 
 void Processor::Grow(const std::string& structure, const std::string& ruleSet)
@@ -208,7 +216,11 @@ void Processor::Grow(const std::string& structure, const std::string& ruleSet)
 		{
 			match = ruleIt->Active && ruleIt->Match(symbols, it);
 			if(match)
+			{
+				if(!ruleIt->Commands().empty())
+					ExecuteSequence(ruleIt->Commands());
 				break;
+			}
 		}
 		if(!match)
 			it++;
@@ -223,7 +235,7 @@ void Processor::Execute(const std::string& name)
 	else if((it = mStructureIndexTable.find(name)) != mStructureIndexTable.end())
 		ExecuteSymbols(mStructures[it->second]);
 	else
-		throw Error("Neither Sequence nor Structure '"+name+"' is not defined!");
+		throw Error("Neither Sequence nor Structure '"+name+"' is defined!");
 }
 
 void Processor::PushState(const std::string& stackId)
@@ -250,7 +262,7 @@ void Processor::PopState(const std::string& stackId)
 	mStacks[stackId].pop();
 }
 
-void Processor::Print(Command* pCmd)
+void Processor::Print(Instruction* pCmd)
 {
 	std::stringstream ss;
 	ss << "PRINT:";
@@ -286,7 +298,7 @@ void Processor::Abort(const std::string& msg)
 	mValid = false;
 }
 
-void Processor::FillSymbolList(const std::string& line, SymbolList& out_symbols)
+void Processor::ParseSymbolList(const std::string& line, SymbolList& out_symbols)
 {
 	//TODO: migrate all parsing into script reader?
 	int pos = 0;
@@ -328,13 +340,13 @@ int Processor::GetSymbolIndex(const std::string& name)
 
 ProductionRule* Processor::AppendProduction()
 {
-	mProductions.push_back(ProductionRule());
+	mProductions.resize(mProductions.size()+1);
 	return &mProductions.back();
 }
 
-Processor::Command* Processor::AppendCommand(const std::string& seqId, InstructionSet type, int blockDepth)
+Instruction* Processor::AppendCommand(const std::string& seqId, InstructionSet type, int blockDepth)
 {
-	Processor::Command* pCmd = new Processor::Command(type, blockDepth);
+	Instruction* pCmd = new Instruction(type, blockDepth);
 	mSequences[GetSequenceIndex(seqId)].push_back(pCmd);
 	return pCmd;
 }

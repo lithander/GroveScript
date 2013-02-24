@@ -11,7 +11,6 @@ namespace Weirwood
 	public:
 		typedef std::map<std::string, int> IndexTable;
 		typedef std::list<std::string> LogMessageList;
-		typedef Command<InstructionSet> Command;
 
 		//STATE STACK
 		struct State
@@ -31,7 +30,7 @@ namespace Weirwood
 		void ClearLog() { mLog.clear(); }
 		LogMessageList& LogMessages() { return mLog; }
 
-		Command* AppendCommand(const std::string& seqId, InstructionSet type, int blockDepth);
+		Instruction* AppendCommand(const std::string& seqId, InstructionSet type, int blockDepth);
 		ProductionRule* AppendProduction();
 
 		//IExpressionIndex
@@ -41,11 +40,11 @@ namespace Weirwood
 		virtual void Log(const std::string& msg);
 		virtual void Abort(const std::string& msg);
 		//SymbolList creation
-		void FillSymbolList(const std::string& line, SymbolList& out_symbols);
+		void ParseSymbolList(const std::string& line, SymbolList& out_symbols);
 	private:
 		void ExecuteSymbols(SymbolList& symbols);
 		void ExecuteSequence(CommandList& sequence);
-		void ExecuteCommand(Command* cmd);
+		void ExecuteCommand(Instruction* cmd);
 
 		//Commands
 		void SetVariable(const std::string& name, double value);
@@ -58,7 +57,7 @@ namespace Weirwood
 		void Gate(bool condition, int depth);
 		void Break(int depth);
 		void Repeat(int depth);
-		void Print(Command* pCmd);
+		void Print(Instruction* pCmd);
 
 		//output
 		LogMessageList mLog;
@@ -77,6 +76,7 @@ namespace Weirwood
 		Structures mStructures;
 
 		//index tables
+		//TODO: add GetIndex("name") method to IndexTable class
 		IndexTable mStructureIndexTable;
 		IndexTable mSequenceIndexTable;
 		IndexTable mSymbolIndexTable;
@@ -85,10 +85,6 @@ namespace Weirwood
 		int GetSequenceIndex(const std::string& name);
 		int GetSymbolIndex(const std::string& name);
 		int GetStructureIndex(const std::string& name);
-						
-		//tmp
-		std::stack<State*> mStateCache;
-		std::stack<SymbolList*> mGrowSymbols;
 	};
 }
 

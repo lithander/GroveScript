@@ -20,7 +20,7 @@ namespace Weirwood
 	class Sprout;
 	class Expression;
 	class ProductionRule;
-	
+
 	struct Error : public std::exception
 	{
 		std::string desc;
@@ -65,11 +65,12 @@ namespace Weirwood
 		
 	
 	//Types
+	typedef Command<InstructionSet> Instruction;
 	typedef std::map<std::string, double> VarTable;
 	typedef std::list<std::string> StringList;
 	typedef std::list<int> SymbolList;
 
-	typedef std::vector<Command<InstructionSet>*> CommandList;
+	typedef std::vector<Instruction*> CommandList;
 	typedef std::vector<CommandList> Sequences;
 	typedef std::vector<ProductionRule> Productions;
 	typedef std::vector<double> Variables;

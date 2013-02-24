@@ -77,6 +77,12 @@ void Sprout::SetPosition(float x, float y)
 	mPosition = mOrigin + Vec2f(x, -y);
 }
 
+void Sprout::SetOrigin(Vec2f origin)
+{
+	Render(false);
+	mOrigin = origin;
+}
+
 void Sprout::Rotate(float degree)
 {
 	mDirection.rotate(toRadians(degree));

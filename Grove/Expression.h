@@ -13,7 +13,6 @@ namespace Weirwood
 		virtual void Abort(const std::string& msg) = NULL;
 	};
 
-	//TODO: create subclass that supports external functions provided through the context, maybe as template
 	class Expression
 	{
 	public:
@@ -33,7 +32,7 @@ namespace Weirwood
 		  OP_POWER,
 		  OP_MUL,		
 		  OP_DIV,
-		  //WARNING: IsBoolean() assumes LG tokens to be last and start with LG_TRUE
+		  //WARNING: IsBoolean() assumes LG tokens at the end of the enum and to start with LG_TRUE
 		  LG_TRUE,
 		  LG_FALSE,
 		  LG_NOT,
@@ -49,6 +48,7 @@ namespace Weirwood
 		  LG_NEQV
 		};
 
+		//TODO: create subclass that supports external functions provided through the context, maybe as template
 		enum FunctionSet
 		{
 			VOID_FN,
@@ -76,6 +76,7 @@ namespace Weirwood
 			FRAC_FN
 		};
 
+		Expression();
 		Expression(IExpressionContext* pContext);
 		~Expression(void);
 		void SetDebugInfo(int lineNr) { mLineNumber = lineNr; };

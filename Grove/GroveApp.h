@@ -28,6 +28,7 @@ class Grove : public AppBasic {
 		
 		//profiling
 		bool mStatsEnabled;
+		bool mLogEnabled;
 		__time64_t mScriptModificationTime;
 		double mScriptParsingTime;
 		double mLastRunTime;
@@ -36,6 +37,7 @@ class Grove : public AppBasic {
 
 		void profileRunTime(double dt);
 		void printStats(Vec2f& textOutPos);
+		void toggleFullscreen();
 		void loadScriptFile(const std::string scriptPath);
 		__time64_t queryScriptModTime(const std::string& scriptPath);
 
