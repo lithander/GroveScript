@@ -69,6 +69,7 @@ namespace Weirwood
 			ABS_FN,
 
 			TIME_FN,
+			RND_FN,
 			MIN_FN,
 			MAX_FN,
 			CLAMP_FN,

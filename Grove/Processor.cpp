@@ -149,6 +149,8 @@ void Processor::ExecuteCommand(Processor::Command* pCmd)
 		Break(pCmd->GetBlockDepth()); break;
 	case REPEAT_OP:
 		Repeat(pCmd->GetBlockDepth()); break;
+	case SRAND_OP:
+		srand((int)pCmd->GetNumber(0)); break;
 	}
 }
 
@@ -211,7 +213,6 @@ void Processor::Grow(const std::string& structure, const std::string& ruleSet)
 		if(!match)
 			it++;
 	}
-
 }
 
 void Processor::Execute(const std::string& name)

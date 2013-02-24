@@ -100,6 +100,7 @@ void Keywords::Init()
 	mOperations["RUN"] = EXE_OP;
 	mOperations["GRW"] = GROW_OP;
 	mOperations["SED"] = SEED_OP;
+	mOperations["SRD"] = SRAND_OP;
 	//TODO: hidden commands
 	mOperations["CND"] = GATE_OP;
 	mOperations["BRK"] = BREAK_OP; 
@@ -119,6 +120,7 @@ void Keywords::Init()
 	mOperations["EXECUTE"] = EXE_OP;
 	mOperations["SEED"] = SEED_OP;
 	mOperations["GROW"] = GROW_OP;
+	//mOperations["SRND"] = SRAND_OP;
 
 	//Expression FUNCTIONS
 	mFunctions["SIN"] = Expression::SIN_FN;
@@ -137,6 +139,7 @@ void Keywords::Init()
 	mFunctions["MAX"] = Expression::MAX_FN;
 	mFunctions["CLAMP"] = Expression::CLAMP_FN;
 	mFunctions["FRAC"] = Expression::FRAC_FN;
+	mFunctions["RND"] = Expression::RND_FN;
 
 	//Expression TOKENS
 	mTokens["NOT"] = Expression::LG_NOT;

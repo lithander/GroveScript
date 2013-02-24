@@ -7,6 +7,11 @@ ProductionRule::~ProductionRule(void)
 {
 }
 
+void ProductionRule::SetCondition(const Expression& exp)
+{
+	mCondition = exp;
+}
+
 void ProductionRule::AddTag(const std::string& tag)
 {
 	if(!HasTag(tag))
@@ -20,7 +25,8 @@ bool ProductionRule::HasTag(const std::string& tag)
 
 bool ProductionRule::Match(SymbolList& symbols, SymbolList::iterator& current)
 {
-	//TODO: verify condition
+	if(!mCondition.IsEmpty() && mCondition.AsBool() == false)
+		return false;
 
 	SymbolList::const_iterator symIt = current;
 	//verify production pattern matches

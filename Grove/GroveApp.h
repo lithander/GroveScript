@@ -15,7 +15,6 @@ class Grove : public AppBasic {
 		~Grove(void);
 
 		// Cinder will always call this function whenever the user drags the mouse
-		void mouseDrag( MouseEvent event );
 		void keyDown( KeyEvent event );
 		void fileDrop( FileDropEvent event );
 	
@@ -23,15 +22,23 @@ class Grove : public AppBasic {
 		void draw();
 		void update();
 		virtual void setup();
-private:
-	Font mFont;
-	__time64_t mScriptModificationTime;
-	std::string mScriptPath;
-	double mScriptParsingTime;
-	void loadScriptFile(const std::string scriptPath);
-	__time64_t queryScriptModTime(const std::string& scriptPath);
-	// This will maintain a list of points which we will draw line segments between
-	std::list<Vec2f> mPoints;
-	Sprout* mSproutPtr;
-	Processor* mProcessorPtr;
+	private:
+		Font mFont;
+		std::string mScriptPath;
+		
+		//profiling
+		bool mStatsEnabled;
+		__time64_t mScriptModificationTime;
+		double mScriptParsingTime;
+		double mLastRunTime;
+		int mSampleCount;
+		double mRunTimeSum;
+
+		void profileRunTime(double dt);
+		void printStats(Vec2f& textOutPos);
+		void loadScriptFile(const std::string scriptPath);
+		__time64_t queryScriptModTime(const std::string& scriptPath);
+
+		Sprout* mSproutPtr;
+		Processor* mProcessorPtr;
 };

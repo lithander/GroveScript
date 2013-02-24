@@ -47,7 +47,8 @@ namespace Weirwood
 		GROW_OP,
 		GATE_OP,
 		BREAK_OP,
-		REPEAT_OP
+		REPEAT_OP,
+		SRAND_OP
 	};
 		
 	enum Macros

@@ -137,10 +137,20 @@ void ScriptReader::ParseProductionRule()
 	int pos = -1;
 	std::string tag;
 	while(ParseParam(mId, pos, tag))
-		pRule->AddTag(tag);	
+		pRule->AddTag(tag);
 
-	int splitPosition = mLine.find("=>", 0);
-	std::string from = mLine.substr(0, splitPosition);
+	//condition
+	pos = mLine.find(':');
+	if(pos != mLine.npos)
+	{
+		Expression condition = Expression(mProcPtr);
+		condition.SetDebugInfo(mLineNumber);
+		ParseExpression(mLine.substr(0, mLine.find(':')), &condition);
+		pRule->SetCondition(condition);
+	}
+
+	int splitPosition = mLine.find("=>");
+	std::string from = mLine.substr(pos+1, splitPosition-pos-1);
 	std::string to = mLine.substr(splitPosition+2);
 	mProcPtr->FillSymbolList(from, pRule->Predecessor());
 	mProcPtr->FillSymbolList(to, pRule->Successor());
@@ -190,15 +200,13 @@ void ScriptReader::ParseCommand()
 bool ScriptReader::ParseParam(const std::string& token, int& inout_pos, std::string& out)
 {
 	out.clear();
-	int end = token.size();
-	if(inout_pos >= end)
-		return false;
-	int parenDepth = 0;
+	int last = token.size()-1;
 	//skip leading whitespaces
-	while(::isspace(token.at(inout_pos+1)))
+	while(inout_pos < last && ::isspace(token.at(inout_pos+1)))
 		inout_pos++;
 	//split at each occurance of ',' outside of parantheses
-	while(++inout_pos < end)
+	int parenDepth = 0;
+	while(++inout_pos <= last)
 	{
 		char c = token.at(inout_pos);
 		if(c == ',' && parenDepth == 0)
@@ -217,7 +225,7 @@ bool ScriptReader::ParseParam(const std::string& token, int& inout_pos, std::str
 		ss << "Parentheses are messed up in Line " << mLineNumber;
 		throw Error(ss.str());
 	}
-	return true;
+	return out.length() > 0;
 }
 
 void ScriptReader::ParseExpression(const std::string& token, Expression* out)

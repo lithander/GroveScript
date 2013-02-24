@@ -11,7 +11,10 @@ using namespace Weirwood;
 
 Grove::Grove(void) :
 	mSproutPtr(NULL),
-	mProcessorPtr(NULL)
+	mProcessorPtr(NULL),
+	mSampleCount(0),
+	mRunTimeSum(0),
+	mStatsEnabled(false)
 {
 	//creating members in setup
 }
@@ -36,17 +39,13 @@ void Grove::setup()
 		loadScriptFile(getArgs()[1]);
 }
 
-void Grove::mouseDrag( MouseEvent event )
-{
-	// add wherever the user drags to the end of our list of points
-	mPoints.push_back( event.getPos() );
-}
-
 void Grove::keyDown( KeyEvent event )
 {
 	char input = event.getChar();
 	if( input == 'f' )
-		setFullScreen( ! isFullScreen() );
+		setFullScreen( !isFullScreen() );
+	if( input == 's' )
+		mStatsEnabled = !mStatsEnabled;
 	if( input == ' ' )
 		loadScriptFile(mScriptPath);
 }
@@ -74,14 +73,13 @@ void Grove::draw()
 			mProcessorPtr->Run("Root");
 			t.stop();
 		}
+		profileRunTime(t.getSeconds());
+		Vec2f textOutPos(0,10);
+		if(mStatsEnabled)
+			printStats(textOutPos);
 		
 		//PRINT COMMANDS
 		gl::enableAlphaBlending();
-		Vec2f textOutPos(0,10);
-		std::stringstream ss;
-		ss << mScriptPath << " Load Time: " << mScriptParsingTime << "s";
-		gl::drawString(ss.str(), textOutPos, ColorA::white(), mFont);
-		textOutPos.y += mFont.getSize();
 		std::string lastToken = "";
 		for(Processor::LogMessageList::iterator it = mProcessorPtr->LogMessages().begin(); it != mProcessorPtr->LogMessages().end(); it++)
 		{
@@ -103,9 +101,6 @@ void Grove::draw()
 			else
 				lastToken = msg;			
 		}
-		ss.str("");
-		ss << "Execution Time: " << t.getSeconds() << "s";
-		gl::drawString(ss.str(), textOutPos, ColorA::hex(0xFFAAAA), mFont);
 	}
 	else
 	{
@@ -120,6 +115,47 @@ void Grove::fileDrop( FileDropEvent evt )
 {
 	fs::path path= evt.getFile( 0 );
 	loadScriptFile(path.string());
+}
+
+void Grove::profileRunTime(double dt)
+{
+	mLastRunTime = dt;
+	mSampleCount++;
+	mRunTimeSum += mLastRunTime;
+	double timeframe = 0.1;
+	int runsPerTimeframe = timeframe / mLastRunTime;
+	if(mSampleCount > runsPerTimeframe)
+	{
+		int prune = mSampleCount - runsPerTimeframe;
+		double avg = mRunTimeSum / mSampleCount;
+		mRunTimeSum -= prune * avg;
+		mSampleCount -= prune;
+	}
+}
+
+void Grove::printStats(Vec2f& textOutPos)
+{
+	std::stringstream ss;
+	ss << mScriptPath << " Load Time: " << mScriptParsingTime << "s";
+	gl::drawString(ss.str(), textOutPos, ColorA::white(), mFont);
+	textOutPos.y += mFont.getSize();
+	ss.str("");
+	ss.setf(std::ios::fixed);
+    ss.precision(6);
+	ss << "FPS: " << (int)getFrameRate();
+	gl::drawString(ss.str(), textOutPos, ColorA::hex(0xFFAAAA), mFont);
+	textOutPos.y += mFont.getSize();
+	ss.str("");
+
+	ss << "Execution Time:    " << mLastRunTime << "s " << int(1.0 / mLastRunTime) << "/s";
+	gl::drawString(ss.str(), textOutPos, ColorA::hex(0xFFAAAA), mFont);
+	textOutPos.y += mFont.getSize();
+	ss.str("");
+
+	ss << "Average Exec.Time: " << mRunTimeSum / mSampleCount << "s " << int(mSampleCount / mRunTimeSum) << "/s";
+	gl::drawString(ss.str(), textOutPos, ColorA::hex(0xFFAAAA), mFont);
+	textOutPos.y += mFont.getSize();
+	ss.str("");
 }
 
 __time64_t Grove::queryScriptModTime(const std::string& scriptPath)
