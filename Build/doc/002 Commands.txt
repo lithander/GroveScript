@@ -1,0 +1,67 @@
+***OPERATIONS***
+
+There are a handful of basic commands. You can issue one command per line. Each causes the the processor to execute a basic operations that depending on their type take zero, one ore more (comma-sepearted) parameters.
+
+Whenever a parameter expects a number an algebraic expressions is accepted!
+Whenever a parameter expects a bool a logical expressions is accepted!
+
+**Turtle**
+
+These commands control the turtle and - in combination - produce the vector rendering.
+
+Move x (number)
+	Will move the turtle by the given length
+Positon x, y (number, number)
+	Will set the turtles position to the given position (x,y)
+Rotate x (number)
+	Will rotate the turtle by the given angle
+Direction x (number)
+	Will set the turtle's rotation to the given angle
+Aim x, y (number, number)
+	Will rotate the turtle to face the point at the given coordinate (x,y)
+Size x (number) 
+	Will set the width of the line the turtle draws
+Visible x (number or bool)
+	Will set the transparency of the line (alpha value range 0 to 1)
+Rgb red, green, blue (3 numbers in the range 0 to 1)
+	Will set the color of the turtle 
+Hsv hue, saturation, value (3 numbers in the range 0 to 1)
+	Will set the color of the turtle
+Pos x, y (numbers)
+	Will set the absolute position of the turtle in pixel
+Dir x (number)
+	Will set the absolute rotation of the turtle in pixel
+	
+**Data**
+
+These commands allow manipulation of variables, stacks, sequence strings etc.
+	
+Set name, value (string, number)
+	Will set a variables value. Variables can be used in expressions.
+Push
+	Pushes the turtle state and all variables to a stack
+Pop
+	Restores the turtle state and all variables values from the top of the stack
+Out output (string or expression)
+	Generates a debug output of the given string or expression. Strings need to be prefixed by a ' character.
+Run name (string)
+	Executes the sequence of commands or (grown) lists sequences with the given name.
+Seed name, axiom
+	Creates a named list of sequences to be grown by productions
+Grow name, productionRule
+	Applys the production rule to the list of sequences.
+Shuffle seed (number)
+	The sequence of random numbers is deterministic and based on seed. This (re)sets the seed and thus the sequence.
+	
+**Control-Flow**
+
+These commands operate on blocks of code. Blocks are formed by indention using Tab characters.
+I suggest to implement all control flow using macros.
+
+BRK
+	skip all commands of equal (or greater) indention 
+RPT 
+	seek first previous command with op's depth
+CND condition (bool)
+	skip all commands of equal (or greater) indention when condition is false 
+	but stop at other CND op's of the same depth

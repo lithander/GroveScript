@@ -1,0 +1,35 @@
+***MACROS***
+
+Macros will unfold to operations. While in theory you could just write all operations directly macro's are easier to use. Control-flow macros operate on blocks. Blocks are formed by indention using Tab characters.
+
+Raise name (string)
+	Raises a variables value just like 'Set name, name + 1' would.
+Lower name (string)
+	Lowers a variable by one. The same as 'Set name, name - 1' would.
+Repeat i (number)
+	Repeat the following block of code i times
+While cnd (bool)
+	Repeat the following block of code while cnd evaluates to true
+Until cnd (bool)
+	Repeat the following block of code while cnd evaluates to false
+If cnd (bool)
+	Execute the following block only if cnd is true
+Else
+	Only usable after an If macro. Executes the following block if previous If-condition was false. Can be chained with further If macros.
+
+Here's a (pointless - but syntactical correct) example of flow control macros to illustrate how they work together:
+
+#letscount
+set i, 0
+repeat 2
+	while i < 12
+		raise i
+		if i%3=0
+			out i, 'multiple of 3
+		else if i%2=1
+			out i, 'uneven
+		else
+			out i
+	until i <= 0
+		lower i, 2
+		out i

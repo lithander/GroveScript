@@ -30,6 +30,7 @@ void Sprout::ToState(State& out_state)
 	out_state.Direction.set(mDirection);
 	out_state.StrokeWidth = mStrokeWidth;
 	out_state.Color = mColor;
+	out_state.Alpha = mAlpha;
 }
 
 void Sprout::FromState(const State& state)
@@ -39,18 +40,20 @@ void Sprout::FromState(const State& state)
 	mDirection.set(state.Direction);
 	mStrokeWidth = state.StrokeWidth;
 	mColor = state.Color;
+	mAlpha = state.Alpha;
 }
 
 void Sprout::Reset()
 {
 	Flush();
+	mAlpha = 1.0f;
 	mColor = ci::Color(1,1,1);
 	mStrokeWidth = 1.0f;
 	mPosition.set(mOrigin);
 	mDirection.set(0.0, -mUnitLength);
 
 	glLineWidth(mStrokeWidth);
-	glColor3f(mColor.r, mColor.g, mColor.b);
+	glColor4f(mColor.r, mColor.g, mColor.b, mAlpha);
 }
 
 void Sprout::Flush()
@@ -94,16 +97,30 @@ void Sprout::SetRotation(float degree)
 	mDirection.rotate(toRadians(degree));
 }
 
+void Sprout::LookAt(float x, float y)
+{
+	Vec2f target(x, -y);
+	mDirection = (mOrigin + target) - mPosition;
+	mDirection.normalize();
+	mDirection *= mUnitLength;
+}
+
 void Sprout::SetColorRGB(float r, float g, float b)
 {
 	mColor = ci::Color(r,g,b);
-	glColor3f(mColor.r, mColor.g, mColor.b);
+	glColor4f(mColor.r, mColor.g, mColor.b, mAlpha);
 }
 
 void Sprout::SetColorHSV(float h, float s, float v)
 {
 	mColor = ci::hsvToRGB(ci::Vec3d(h,s,v));
-	glColor3f(mColor.r, mColor.g, mColor.b);
+	glColor4f(mColor.r, mColor.g, mColor.b, mAlpha);
+}
+
+void Sprout::SetAlpha(float alpha)
+{
+	mAlpha = alpha;
+	glColor4f(mColor.r, mColor.g, mColor.b, mAlpha);
 }
 
 //PRIVATE

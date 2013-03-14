@@ -1,0 +1,29 @@
+/*
+Start: F
+Rules: F=FF-[-F+F+F]+[+F-F-F]
+Order: 4, Left Angle: 22, Right Angle: 22
+Source: http://10klsystems.wordpress.com/
+*/
+
+size 1
+position 30, -240
+
+seed frac, F
+repeat 4
+	grow frac, rule
+run frac
+
+#[
+push
+#]
+pop
+#+
+rotate 22
+#-
+rotate -22
+#F
+move 0.8
+
+#rule
+F => F F - [ - F + F + F ] + [ + F - F - F ]
+

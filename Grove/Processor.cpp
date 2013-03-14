@@ -125,18 +125,22 @@ void Processor::ExecuteCommand(Instruction* pCmd)
 	{
 	case MOVE_OP:
 		mSproutPtr->Move((float)pCmd->GetNumber(0)); break;
-	case ROTATE_OP:
-		mSproutPtr->Rotate((float)pCmd->GetNumber(0)); break;
-	case SIZE_OP:
-		mSproutPtr->SetWidth((float)pCmd->GetNumber(0)); break;
 	case POSITION_OP:
 		mSproutPtr->SetPosition((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1)); break;
+	case ROTATE_OP:
+		mSproutPtr->Rotate((float)pCmd->GetNumber(0)); break;
+	case DIRECTION_OP:
+		mSproutPtr->SetRotation((float)pCmd->GetNumber(0)); break;
+	case AIM_OP:
+		mSproutPtr->LookAt((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1)); break;
+	case SIZE_OP:
+		mSproutPtr->SetWidth((float)pCmd->GetNumber(0)); break;
+	case ALPHA_OP:
+		mSproutPtr->SetAlpha(pCmd->IsBoolean(0) ? (pCmd->GetBool(0) ? 1.0 : 0.0) : pCmd->GetNumber(0)); break;
 	case COLOR_RGB_OP:
 		mSproutPtr->SetColorRGB((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1), (float)pCmd->GetNumber(2)); break;
 	case COLOR_HSV_OP:
 		mSproutPtr->SetColorHSV((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1), (float)pCmd->GetNumber(2)); break;
-	case DIRECTION_OP:
-		mSproutPtr->SetRotation((float)pCmd->GetNumber(0)); break;
 	case SET_OP:
 		SetVariable(pCmd->GetToken(0), pCmd->GetNumber(1)); break;
 	case PUSH_OP:

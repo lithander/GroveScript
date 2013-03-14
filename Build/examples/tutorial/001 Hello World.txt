@@ -1,0 +1,17 @@
+out 'Hello World
+
+/*
+This one line above is all you need to see some reaction from Grove.
+
+The first word "out" is a command. It tells Grove to take whatever comes next and print it on the screen.
+
+Change the text behind the ' character and save the file (Strg-S) and you should see Grove adapting to the change instantly.
+
+In case you wonder what the ' does there: It tells Grove that the following characters are meant to be text.
+
+This of course implies that if the following characters aren't text the ' isn't neaded. For example "out 1337" would be a perfectly valid command.
+
+Valid or not - you probably think printing text to be rather boring and I agree. But it's traditional for tutorials about programming languages to start with teaching the subject (YOU) how to print "Hello World" on the screen and who am I to mess with tradition?
+
+In the next step we'll learn how to make Grove draw.
+*/

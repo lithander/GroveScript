@@ -1,0 +1,24 @@
+/*
+Start: F+F+F+F
+Rules: F=F+F-F-FF+F+F-F
+Order: 3, Left Angle: 90, Right Angle: 90
+Source: http://10klsystems.wordpress.com/
+*/
+
+size 2
+position -100, -130
+
+seed frac, F + F + F + F
+repeat 3
+	grow frac, rules
+run frac
+
+#+
+rotate 90
+#-
+rotate -90
+#F
+move 0.4
+
+#rules
+F => F + F - F - F F + F + F - F

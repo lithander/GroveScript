@@ -1,0 +1,60 @@
+//seed the random sequence
+shuffle floor(time())
+
+position 0, 60
+set foo, 0
+set t, time()*180
+set step, 1
+set size, 2
+size size
+
+seed Fractal, Right
+repeat 2
+	grow Fractal, RightRule
+	grow Fractal, LeftRule
+
+grow Fractal, ResolveFoo
+	
+run Fractal
+rotate 180
+run Fractal
+
+#Right
+move step
+rotate 90
+move step
+
+#Left
+move step
+rotate -90
+move step
+
+#Red
+rgb 1,0,0
+size size*3
+#Green
+rgb 0,1,0
+size size*3
+#Blue
+rgb 0,0,1
+size size*3
+
+#Base
+rotate 90
+move step*sin(t)
+rotate 180
+rgb 1,1,1
+move step*sin(t)
+rotate 90
+size size
+
+#ResolveFoo
+[rnd() > 0.6] Foo => Red Base
+[rnd() < 0.3] Foo => Green Base
+Foo => Blue Base
+	
+#RightRule
+Right => Right Left Foo Left Right
+
+#LeftRule
+Left => Left Right Foo Right Left

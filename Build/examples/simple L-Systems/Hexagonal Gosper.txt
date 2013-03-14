@@ -1,0 +1,28 @@
+/*
+Start: XF
+Rules: X=X+YF++YF-FX--FXFX-YF+;Y=-FX+YFYF++YF+FX--FX-Y;F=F
+Order: 4, Step Length: 6, Left Angle: 60, Right Angle: 60
+Source: http://10klsystems.wordpress.com/
+*/
+
+position -200, 70
+size 2
+seed frac, X F
+repeat 4
+	grow frac, rules
+run frac
+
+#+
+rotate 60
+#-
+rotate -60
+#F
+move 0.8
+
+#rules
+X => X + Y F + + Y F - F X - - F X F X - Y F +
+Y => - F X + Y F Y F + + Y F + F X - - F X - Y
+
+
+
+

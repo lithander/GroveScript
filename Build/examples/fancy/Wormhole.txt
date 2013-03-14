@@ -1,0 +1,41 @@
+/*
+Start: X
+Rules: X=-FF+FF+F+F-F-FFX;F=F
+Order: 30, Step Length: 10, Left Angle: 88, Right Angle: 92
+Source: http://10klsystems.wordpress.com/
+*/
+
+seed frac, X F
+repeat 30
+	grow frac, rules
+
+set max, 30
+set i, max
+while i >= 1
+	size i/7
+	set step, i/20
+	set color, 1.1-max(i,max-i)/(max)
+	set t, time()*15
+	visible 0.6
+	run place
+	run frac
+	lower i, 1
+
+#place
+direction 0
+position 0, 0
+rotate t
+rgb 0, 0, 0
+move step*30+0.3*sin(step*t*40)
+rotate 90
+hsv frac(t/200+step/5), 0.6+0.3*sin(t), color
+
+#+
+rotate 92
+#-
+rotate -88
+#F
+move step*2
+
+#rules
+X => - F F + F F + F + F - F - F F X

@@ -1,0 +1,24 @@
+/*
+Start: A++A++A
+Rules: A=A-A++A-A
+Order: 6, Left Angle: 60, Right Angle: 60
+Source: http://10klsystems.wordpress.com/
+*/
+
+position -60, -140
+
+size 2
+seed frac, A + + A + + A
+repeat 3
+	grow frac, rules
+run frac
+
+#+
+rotate 60
+#-
+rotate -60
+#A
+move 1
+
+#rules
+A => A - A + + A - A

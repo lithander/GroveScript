@@ -1,0 +1,26 @@
+/*
+Start: AB
+Rules: B=B+CA; C=AB-C;
+Order: 11, Left Angle: 90, Right Angle: 90
+Source: http://10klsystems.wordpress.com/
+*/
+
+position 60, 120
+
+size 2
+rotate 90
+seed frac, A B
+repeat 11
+	grow frac, rules
+run frac
+
+#+
+rotate 90
+#-
+rotate -90
+#A
+move 0.7
+
+#rules
+B => B + C A
+C => A B - C

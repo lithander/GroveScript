@@ -87,12 +87,14 @@ void Keywords::Init()
 {
 	//OPERATIONS
 	mOperations["MOV"] = MOVE_OP;
+	mOperations["POS"] = POSITION_OP;
 	mOperations["ROT"] = ROTATE_OP;
+	mOperations["DIR"] = DIRECTION_OP;
+	mOperations["AIM"] = AIM_OP;
 	mOperations["SZE"] = SIZE_OP;
+	mOperations["VIS"] = COLOR_RGB_OP;
 	mOperations["RGB"] = COLOR_RGB_OP;
 	mOperations["HSV"] = COLOR_HSV_OP;
-	mOperations["POS"] = POSITION_OP;
-	mOperations["DIR"] = DIRECTION_OP;
 	mOperations["SET"] = SET_OP;
 	mOperations["PSH"] = PUSH_OP;
 	mOperations["POP"] = POP_OP;
@@ -107,12 +109,13 @@ void Keywords::Init()
 	mOperations["RPT"] = REPEAT_OP;
 
 	mOperations["MOVE"] = MOVE_OP;
+	mOperations["POSITION"] = POSITION_OP;
 	mOperations["ROTATE"] = ROTATE_OP;
+	mOperations["DIRECTION"] = DIRECTION_OP;
 	mOperations["SIZE"] = SIZE_OP;
+	mOperations["VISIBLE"] = ALPHA_OP;
 	mOperations["RGB"] = COLOR_RGB_OP;
 	mOperations["HSV"] = COLOR_HSV_OP;
-	mOperations["POSITION"] = POSITION_OP;
-	mOperations["DIRECTION"] = DIRECTION_OP;
 	mOperations["SET"] = SET_OP;
 	mOperations["PUSH"] = PUSH_OP;
 	mOperations["POP"] = POP_OP;
@@ -120,7 +123,7 @@ void Keywords::Init()
 	mOperations["EXECUTE"] = EXE_OP;
 	mOperations["SEED"] = SEED_OP;
 	mOperations["GROW"] = GROW_OP;
-	mOperations["DICE"] = SRAND_OP;
+	mOperations["SHUFFLE"] = SRAND_OP;
 
 	//Expression FUNCTIONS
 	mFunctions["SIN"] = Expression::SIN_FN;
@@ -140,6 +143,7 @@ void Keywords::Init()
 	mFunctions["CLAMP"] = Expression::CLAMP_FN;
 	mFunctions["FRAC"] = Expression::FRAC_FN;
 	mFunctions["RND"] = Expression::RND_FN;
+	mFunctions["RANDOM"] = Expression::RND_FN;
 
 	//Expression TOKENS
 	mTokens["NOT"] = Expression::LG_NOT;

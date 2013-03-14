@@ -1,0 +1,26 @@
+/* We have learned how to make Grove print text by using the "out" command. There are many more commands for you to learn so let me just show you some. 
+*/
+
+move 10
+rotate 120
+move 10
+rotate 120
+move 10
+
+/* Above you see the "move" and the "rotate" commands working together to draw a triangle.
+
+The idea of drawing by moving and rotating a cursor isn't new.
+There's even a page on Wikipedia about it:
+
+http://en.wikipedia.org/wiki/Turtle_graphics
+
+It has a funny name but when you try to "program" graphics that way it's actually really helpful to think of a turtle moving and turning according to the commands and (for some reason) leaving a trail of color behind.
+
+Turtle starts in the middle of the screen, looking up. You tell it to move 10 units then turn right by 120 degree. Move 10 units, turn right again and move 10 units. And voila... it's back where it started but we got a beautiful(!) triangle on the screen.
+
+If you've looked at some of the fancy examples it's all drawn by the same turtle. Just a bunch of colors and lines but together they can form quite complex images.
+
+This is the power of the Turtle. 
+
+Can you draw a square? Rectangle? Star? Take some time to experiment before you move on to the next issue.
+*/

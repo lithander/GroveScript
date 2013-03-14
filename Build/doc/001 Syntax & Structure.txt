@@ -1,0 +1,8 @@
+***Introduction to the scripting language***
+
+The scripts atomic elements are commands, issued one per line and executed sequentially. The script execution starts with the first command it finds and ends when # character marks the beginning of a sequence or production. A named sequence (or procedure) encompasses all following commands until another sequence or production is defined. A sequence can be directly executed with the 'Run' command. It's possible to group sequences, too. Such a string of sequence names can be defined and named using the 'Seed' command and also executed with the 'Run' command. Last but not least you can use the 'Grow' command to apply productions to these strings of sequence names which typically creates a longer, more complex string.
+Besides 'Run' there are are other commands that allow for conditional branching and conditional loops. For ease of use there are macro's available that will unfold to commands such as 'while', 'repeat' etc.
+
+The scripting language supports variables and algebraic expressions that can be used whenever a command would expect a number as a parameter. Where a boolean parameter is expected you can use variables and boolean expressions instead.
+
+There's no automatic scoping, all variables and sequences are globaly defined. But you can push and pop the state of the cursor and the variables on a stack using the 'Push' and 'Pop' commands. So it's possible to run a subroutine while preventing permanent change to variables or cursor-state when necessary.

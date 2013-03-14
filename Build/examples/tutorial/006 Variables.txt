@@ -1,0 +1,92 @@
+/*
+I've shown you how to define and run sequences.
+
+What makes sequences really usefull is that you can run sequences from within sequences.
+Using sequences from within sequences helps to get more complex stuff done without making a huge mess out of your code.
+
+Compare the code below with the one frome the last part. I've defined a sequence called "Hello" that run's the sequences to draw the individual characters.
+
+Every character subroutine run's two additional subroutine. One called "Prepare" and one's called "Next". These make the character subroutines really useful, because they take care of placing and moving the cursor positon. And they do that with variables!
+
+With the 'Set' command you can pick a name and associate a value to it. We define a two variables "cursorX" and "cursorX" to keep track of the cursor position. Whenever a character is going to be drawn it calls the "Prepare" subroutine that places the turtle at the current cursor position.
+After the character has been drawn, the "Next subroutine is run to move cursor position a little by changing the value of the "cursorX" variable. The 'Raise' command (actually it's a macro) adds the value of the second parameter to the variable passed as the first parameter.
+*/
+
+size 2
+set alpha, 0.3
+set cursorX, -50
+set cursorY, -20
+
+rgb 1, 0, 0
+run Hello
+
+//Now it's easy to draw 'Hello' multiple times or change it's color. 
+//Just uncomment the following block and give it a try.
+/* UNCOMMENT THIS BLOCK! 
+rgb 0, 1, 0
+set cursorX, 150
+set cursorY, 120
+run Hello
+*/
+
+#Hello
+run H
+run E
+run L
+run L
+run O
+
+#H
+run Prepare
+move 2
+rotate 180
+move 1
+rotate -90
+move 1
+rotate -90
+move 1
+rotate 180
+move 2
+run Next
+
+#E
+run Prepare
+repeat 2
+	rotate 90
+	move 1
+	rotate 180
+	move 1
+	rotate 90
+	move 1
+rotate 90
+move 1
+run Next
+
+#L
+run Prepare
+rotate 90
+move 1
+rotate 180
+move 1
+rotate 90
+move 2
+run Next
+
+#O
+run Prepare
+visible false
+rotate 90
+move 0.5
+visible true
+move 0
+repeat 36
+	rotate -10
+	move 0.17
+run Next
+
+#Prepare
+pos cursorX, cursorY
+dir 0
+
+#Next
+raise cursorX, 20

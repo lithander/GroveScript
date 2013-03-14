@@ -1,0 +1,59 @@
+/*
+Start: F
+Rules: F=FF-/-F+F+F\+/+F-F-F\
+Order: 4, Left Angle: 22, Right Angle: 22
+Source: http://10klsystems.wordpress.com/
+*/
+
+size 1
+position 0, -240
+set dist, 0
+set t, time()
+
+seed frac, G
+repeat 3
+	grow frac, thick
+grow frac, thin
+grow frac, thinnest
+run frac
+
+#/
+push
+#\
+pop
+#+
+rotate 26+cos(t*90)+0.2*sin(t*55)
+#-
+rotate -25-cos(t*90)
+#G
+raise dist
+set light, 0.6
+run color
+size (100/dist)^0.64
+move (10/dist)^0.35
+#F
+raise dist
+set light, 0.7
+run color
+size 2
+move 1
+#B
+raise dist
+set light, 0.9
+run color
+size 2
+move 1
+
+#color
+set d, dist/(130+5*sin(t*90))
+hsv d, d*(3-d), d^3+d^light
+visible 1-dist/100
+
+
+
+#thinnest
+F => F - / - B + B + B \ + F / + B - B - B \
+#thin
+G => G G - / + F \ + / - F \
+#thick
+G => G G - - / - G + + G - G \ + + / + G - G + G \

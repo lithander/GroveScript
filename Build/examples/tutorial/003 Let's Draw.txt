@@ -1,0 +1,41 @@
+move 10
+rotate 90
+move 10
+rotate 90
+move 10
+rotate 90
+move 10
+
+/* 
+I asked you to draw a square and you probably did something like the above. I hope you are thankful, that I didn't ask you to draw anything more complex. Repeating the same "move 10" and "rotate 90" four times just to end up with a square is pretty tedious. So just imagine how the code would look like if you wanted to draw an Octagon. 
+Copy&Paste to the rescue I hear you think? Well, then draw me a perfect circle, please! :)
+
+So let me show you something. 
+
+If you delete the comment delimiters "/*" around what looks suspiciously like code you can make Grove execute the following commands.
+*/
+
+/*
+position -200, 0
+repeat 4
+	move 10
+	rotate 90
+
+position -80, 0
+repeat 8
+	move 4
+	rotate 45
+	
+position 260, 30
+repeat 5
+	move 10
+	rotate 144
+*/	
+
+/*
+Okay, now I can ask you to experiment without wasting your time on copy and pasting because the "repeat" command will take care of that for you. All code that follows repeat and is indented will be repeated as often as the number that followed the "repeat" command says. 
+
+By the way: We call "stuff that follows" paramters. And as the "position" command shows there can be more then one paramter. If you need to pass more paramters after the first just use a comma to seperate them. How many parameters are expected and what they mean depends on the command. 
+
+In case of "position" this command places the Turtle somewhere on the screen. 0, 0 would be the center. The first parameter is the horizontal offset and the second parameter is the vertical offset. Experiment with the values to get a feel for the coordinate system Grove uses before you move on to the next issue.
+*/

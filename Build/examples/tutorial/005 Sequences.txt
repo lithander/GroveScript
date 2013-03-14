@@ -1,0 +1,71 @@
+/*
+I've shown you the basic commands to control the turtle. If you have experiment a bit you'll quickly realize how tedious it can be to make even the simplest graphics.
+
+The key to change that is emergance. We need structures so that we don't have to spell out every move and every turn of our turtle one by one.
+
+So, let me show you some tricks. First of all the Sequence: By prepending a bunch of commands with the '#' character you form a sequence. And now, whenever you want Grove to execute that sequence of commands, instead of writing them all down you 'run' the sequence.
+
+In the following script I've defined 4 sequences H E L and O. And I use the 'run' command to write Hello that way. 
+
+What the run command actually does is this: Look for a sequence with a name that matches the passed parameter, then execute all commands in the sequence in the usual order. But no matter where the sequence was defined, after it has fully executed the program jumps back to the position where 'run' was issued.
+
+This allows you to structure your program to keep it readable and reuse code.
+
+Try to add your own characters and write something with them. Then proceed with the next tutorial.
+*/
+
+size 2
+
+run H
+pos 20, 0
+dir 0
+run E
+pos 40, 0
+dir 0
+run L
+pos 60, 0
+dir 0
+run L
+pos 80, 0
+dir 0
+run O
+
+#H
+move 2
+rotate 180
+move 1
+rotate -90
+move 1
+rotate -90
+move 1
+rotate 180
+move 2
+
+#E
+repeat 2
+	rotate 90
+	move 1
+	rotate 180
+	move 1
+	rotate 90
+	move 1
+rotate 90
+move 1
+
+#L
+rotate 90
+move 1
+rotate 180
+move 1
+rotate 90
+move 2
+
+#O
+rgb 0, 0, 0
+rotate 90
+move 1
+rgb 1, 1, 1
+move 0
+repeat 36
+	rotate -10
+	move 0.17

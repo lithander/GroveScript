@@ -1,0 +1,24 @@
+/*
+Start: F-F-F-F-F
+Rules: F=F-F++F+F-F-F
+Order: 4, Step Length: 5, Left Angle: 72, Right Angle: 72
+Source: http://10klsystems.wordpress.com/
+*/
+
+size 2
+position -120, -80
+
+seed frac, F - F - F - F - F
+repeat 3
+	grow frac, rules
+run frac
+
+#+
+rotate 72
+#-
+rotate -72
+#F
+move 1
+
+#rules
+F => F - F + + F + F - F - F

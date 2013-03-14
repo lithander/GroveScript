@@ -14,7 +14,8 @@ Grove::Grove(void) :
 	mProcessorPtr(NULL),
 	mSampleCount(0),
 	mRunTimeSum(0),
-	mStatsEnabled(false)
+	mStatsEnabled(false),
+	mLogEnabled(true)
 {
 	//creating members in setup
 }

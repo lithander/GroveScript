@@ -140,17 +140,20 @@ void ScriptReader::ParseProductionRule()
 		mRulePtr->AddTag(tag);
 
 	//condition
-	pos = mLine.find(':');
-	if(pos != mLine.npos)
+	int cBegin = mLine.find('[');
+	int cEnd = mLine.find(']');
+	if(cBegin != mLine.npos && cEnd != mLine.npos)
 	{
-		Expression condition = Expression(mProcPtr);
-		condition.SetDebugInfo(mLineNumber);
-		ParseExpression(mLine.substr(0, mLine.find(':')), &condition);
-		mRulePtr->SetCondition(condition);
+		Expression cnd = Expression(mProcPtr);
+		cnd.SetDebugInfo(mLineNumber);
+		std::string condition = mLine.substr(cBegin+1, cEnd-1);
+		mLine.erase(cBegin, cEnd+1);
+		ParseExpression(condition, &cnd);
+		mRulePtr->SetCondition(cnd);
 	}
 
 	int splitPosition = mLine.find("=>");
-	std::string from = mLine.substr(pos+1, splitPosition-pos-1);
+	std::string from = mLine.substr(0, splitPosition-1);
 	std::string to = mLine.substr(splitPosition+2);
 	mProcPtr->ParseSymbolList(from, mRulePtr->Predecessor());
 	mProcPtr->ParseSymbolList(to, mRulePtr->Successor());

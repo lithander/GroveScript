@@ -1,0 +1,28 @@
+***EXPRESSIONS***
+
+Algebraic Expressions adhere to the usual rules and support the following functions:
+	
+	Basic Trigonometric Functions:(http://en.wikipedia.org/wiki/Trigonometric_functions)
+		sin(degree)
+		cos(degree)
+		tan(degree)
+
+	Other Functions
+		exp(a)				- natural (base-e) exponential function 
+		ln(a)				- base-e logarithm, the inverse of exp
+		floor(a)			- rounds down to next lowest integer
+		ceil(a) 			- rounds up to next highest integer
+		frac(a)				- returns the fractional part of a number
+		abs(a)				- makes negative numbers positive
+
+		min(a,b,...)  		- returns the smallest of the passed numbers
+		max(a,b,...) 		- returns the biggest of the passed numbers
+		clamp(a, min, max)	- constrains a to the interval between min and max
+	
+		time()				- returns the current runtime of the programm in seconds
+		random()			- returns a random number between 0 and 1
+		
+	Note: Modulo is implemented as operator '%' and not a function.
+
+Logical Expressions use the following keywords as operators/literals.
+	not, and, or, true, false, is, isnt

@@ -1,0 +1,41 @@
+/*
+Start: A
+Rules: A=B-[[A]+A]+B[+BA]-A;B=BB
+Order: 4, Left Angle: 25, Right Angle: 25
+Source: http://10klsystems.wordpress.com/
+*/
+
+size 2
+position 0, -180
+
+seed frac, A
+repeat 4
+	grow frac, rules
+run frac
+
+#-[[
+rotate -25
+push
+push
+
+#]+
+pop
+rotate 25
+
+#[+
+push
+rotate 25
+
+#]-
+pop
+rotate -25
+
+#A
+move 1
+
+#B
+move 1
+
+#rules
+A => B -[[ A ]+ A ]+ B [+ B A ]- A
+B => B B

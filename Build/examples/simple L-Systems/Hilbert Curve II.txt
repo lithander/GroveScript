@@ -1,0 +1,25 @@
+/*
+Start: X
+Rules: X=XFYFX+F+YFXFY-F-XFYFX;Y=YFXFY-F-XFYFX+F+YFXFY;F=F
+Order: 5, Left Angle: 90, Right Angle: 90
+Source: http://10klsystems.wordpress.com/
+*/
+
+size 2
+position -120, -120
+
+seed frac, X
+repeat 3
+	grow frac, rules
+run frac
+
+#+
+rotate 90
+#-
+rotate -90
+#F
+move 1
+
+#rules
+X => X F Y F X + F + Y F X F Y - F - X F Y F X
+Y => Y F X F Y - F - X F Y F X + F + Y F X F Y

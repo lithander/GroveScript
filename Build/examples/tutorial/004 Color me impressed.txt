@@ -1,0 +1,63 @@
+/*
+Thanks to the "repeat" command it takes only 3 lines to draw a complex shape such as an octagon, a pentagram and a lot of other geometrical shapes, too.
+
+The "positon" command is pretty helpful too because it allows you to place the turtle freely and without drawing.
+
+And here are some other commands that will all help you to draw fancy stuff.
+
+"direction" is like "position" in that it allows you to set the rotation of the turtle in an absolute fashion instead of relative to where it currently sits.
+
+Then we got "aim" which is another alternative for setting the turtle's direction. "aim 5, 10" will make the turtle look at the position 5, 10.
+
+Last but not least drawing a thin, white line is not all the turtle can do.
+
+You can set the line width with the "size" command and the line color with the "rgb" and "hsv" command.
+
+I let wikipedia explain the details.
+
+http://en.wikipedia.org/wiki/RGB_color_model
+http://en.wikipedia.org/wiki/HSL_and_HSV
+
+And now you can start drawing colorful pictures that resemble what you did in pre-school just that now you have an obedient Turtle to do all the work.
+
+Oh and it's pretty fast too. Hit the S-Key in Grove and you'll notice that it actually draws the same drawing a couple hundred times per second. Computer's don't mind repetition.
+*/
+
+//grass
+rgb 0.5, 1, 0
+direction 0
+position -310, -140
+repeat 63
+	move 1
+	rotate 180
+	move 1
+	rotate -90
+	move 1
+	rotate -90
+
+//white house
+size 3
+rgb 1, 0.5, 0.1
+position 0,-40
+repeat 4
+	rotate 90
+	move 10
+	
+//red roof
+rgb 1, 0, 0
+position 0,-40
+direction 45
+move 7
+rotate 90
+move 7
+	
+//sun
+size 2
+rgb 1, 1, 0.5
+position 250, 140
+repeat 300
+	aim 250, 130
+	rotate 90
+	move 0.2
+
+	

@@ -1,0 +1,24 @@
+/*
+Start: X
+Rules: X=-FF+FF+F+F-F-FFX;F=F
+Order: 30, Step Length: 10, Left Angle: 88, Right Angle: 92
+Source: http://10klsystems.wordpress.com/
+*/
+
+size 2
+position -120, 0
+
+seed frac, X F
+repeat 30
+	grow frac, rules
+run frac
+
+#+
+rotate 92
+#-
+rotate -88
+#F
+move 1
+
+#rules
+X => - F F + F F + F + F - F - F F X
