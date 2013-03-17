@@ -8,7 +8,7 @@
 
 using namespace Weirwood;
 
-Processor::Processor(Sprout* sproutPtr)
+Processor::Processor(Sprout* sproutPtr) : mTempVar(0)
 {
 	mSproutPtr = sproutPtr;
 	mVars.reserve(20);
@@ -31,6 +31,8 @@ void Processor::Reset()
 		mTrash.pop();
 	}
 
+	mTempVar = 0;
+	mTmpIndices.clear();
 	mValid = true;
 	mLog.clear();
 	mSproutPtr->Reset();
@@ -96,7 +98,11 @@ void Processor::ExecuteSymbols(SymbolList& symbols)
 
 void Processor::ExecuteSequence(CommandList& seq)
 {
-	//TODO: store and restore internal variables
+	//store and restore internal variables
+	std::vector<int> tempVarValues;
+	tempVarValues.reserve(mTmpIndices.size());
+	for(IndexList::iterator it = mTmpIndices.begin(); it != mTmpIndices.end(); it++)
+		tempVarValues.push_back(mVars[*it]);
 
 	//store flow-ctrl state in case of recursion
 	CommandList::iterator next = mNextCommand;
@@ -115,6 +121,11 @@ void Processor::ExecuteSequence(CommandList& seq)
 	mNextCommand = next;
 	mSequenceBegin = begin;
 	mSequenceEnd = end;
+
+	//store and restore internal variables
+	std::vector<int>::iterator storedValue = tempVarValues.begin();
+	for(IndexList::iterator it = mTmpIndices.begin(); it != mTmpIndices.end(); it++)
+		mVars[*it] = *storedValue++;
 }
 
 void Processor::ExecuteCommand(Instruction* pCmd)
@@ -136,7 +147,7 @@ void Processor::ExecuteCommand(Instruction* pCmd)
 	case SIZE_OP:
 		mSproutPtr->SetWidth((float)pCmd->GetNumber(0)); break;
 	case ALPHA_OP:
-		mSproutPtr->SetAlpha(pCmd->IsBoolean(0) ? (pCmd->GetBool(0) ? 1.0 : 0.0) : pCmd->GetNumber(0)); break;
+		mSproutPtr->SetAlpha(pCmd->IsBoolean(0) ? (pCmd->GetBool(0) ? 1.0f : 0.0f) : pCmd->GetNumber(0)); break;
 	case COLOR_RGB_OP:
 		mSproutPtr->SetColorRGB((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1), (float)pCmd->GetNumber(2)); break;
 	case COLOR_HSV_OP:
@@ -162,7 +173,9 @@ void Processor::ExecuteCommand(Instruction* pCmd)
 	case REPEAT_OP:
 		Repeat(pCmd->GetBlockDepth()); break;
 	case SRAND_OP:
-		srand((int)pCmd->GetNumber(0)); break;
+		srand((int)pCmd->GetNumber(0)); 
+		rand();
+		break;
 	}
 }
 
@@ -411,6 +424,21 @@ int Processor::GetVarIndex(const std::string& name)
 		mVarIndexTable[name] = index;
 		return index;
 	}
+}
+
+
+std::string Processor::GetTempVar()
+{
+	std::stringstream ss;
+	ss << "_c" << mTempVar++;
+	std::string varName = ss.str();
+	mTmpIndices.insert(GetVarIndex(varName));
+	return varName;
+}
+
+void Processor::ReleaseTempVar()
+{
+	mTempVar--;
 }
 		
 double Processor::GetTime()

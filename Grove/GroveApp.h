@@ -1,6 +1,8 @@
 #include "Weirwood.h"
 #include "cinder/app/AppBasic.h"
 #include "cinder/Rand.h"
+#include "cinder/gl/Fbo.h"
+#include "cinder/gl/GlslProg.h"
 
 using namespace Weirwood;
 using namespace ci;
@@ -25,6 +27,13 @@ class Grove : public AppBasic {
 	private:
 		Font mFont;
 		std::string mScriptPath;
+
+		bool mPostFxEnabled;
+		gl::Fbo mTargetFbo;
+		gl::Fbo mVerticalBlurFbo;
+		gl::Fbo mFinalBlurFbo;
+		gl::GlslProg mBlurShader;
+		gl::GlslProg mCombineShader;
 		
 		//profiling
 		bool mStatsEnabled;
@@ -35,6 +44,9 @@ class Grove : public AppBasic {
 		int mSampleCount;
 		double mRunTimeSum;
 
+		void createFBOs(Vec2i size);
+		void createShader();
+		void copyBlur(gl::Fbo& source, gl::Fbo& target, Vec2f sampleOffset);
 		void profileRunTime(double dt);
 		void printStats(Vec2f& textOutPos);
 		void toggleFullscreen();

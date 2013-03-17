@@ -13,9 +13,9 @@ repeat 4
 	grow frac, rule
 run frac
 
-#[
+#/
 push
-#]
+#\
 pop
 #+
 rotate 22
@@ -25,5 +25,5 @@ rotate -22
 move 0.8
 
 #rule
-F => F F - [ - F + F + F ] + [ + F - F - F ]
+F => F F - / - F + F + F \ + / + F - F - F \
 

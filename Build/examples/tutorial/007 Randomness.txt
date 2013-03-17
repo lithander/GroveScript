@@ -1,0 +1,105 @@
+/*
+In all previous examples we made the computer draw something. But it was the same picture, redrawn some hundred times per second. Luckily computers never complain about boring tasks. 
+
+But if the image is redrawn anyway why not change it a little from time to time?
+
+To make something like that possible Grove provides you with a time() function that will return the time in seconds the current script is running. That's good to know. But how do we use that function? What IS a function?
+
+In the last tutorial I've shown you how to set and modify variables and use them as command parameters instead of literal numbers. What I didn't tell you is that you can use any expression as a parameter as long as it evaluates to the requested parameter type (bool or number).
+
+What I mean is this:
+
+"set mynumber, 5" can also be written "set mynumber, 2 + 3" because the expression "2 + 3" is something the parser can resolve to the number 5. (I had a lot of fun coding that part of Grove!)
+The time function I told you about can be used in an expression too because it also resolves to a number. The cool thing is that everytime Grove renders a picture that number will be different. And we can use that to animate our picture over time!
+
+
+In this example I'll use the 'schuffle' command and the time() function to generate a sequences of random numbers that change every second. Each time you call shuffle with the same parameter the same numbers will be generated. And when the parameter changes all the random numbers() change too. Now, the result given by time() changes all the time but 'shuffle' doesn't care for the fractional part. So from 'schuffles' point of view time() changes only every second. And then shuffle will seed the random generator with that nummber.
+
+So let's use these random numbers to spice up the Hello example from last tutorial.
+You get a new random number through the random() function. Just the same thing as time() but instead of evaluating to the current runtime it evaluates to a random number between 0 and 1.
+
+Experiment a little with the following code! For example right in the second line you could multiply the time with a number to invoke more or less frequent changes.
+
+*/
+
+//You remember the "out" command from the very first tutorial?
+out time()
+
+//Let's use a different sequence of random numbers each elapsed second
+shuffle time()
+
+//Use the repeat macro to run the Hello subroutine 5 times
+repeat 5
+	run RandomHello
+
+//Chose random size, color and position before calling the Hello subroutine
+#RandomHello
+size 1+random()*2
+rgb random(), random(), random()
+set cursorX, -150 + random()*300
+set cursorY, -150 + random()*300	
+run Hello
+	
+//!!!The following code is exactly the same as in the last Tutorial.
+
+#Hello
+run H
+run E
+run L
+run L
+run O
+
+#H
+run Prepare
+move 2
+rotate 180
+move 1
+rotate -90
+move 1
+rotate -90
+move 1
+rotate 180
+move 2
+run Next
+
+#E
+run Prepare
+repeat 2
+	rotate 90
+	move 1
+	rotate 180
+	move 1
+	rotate 90
+	move 1
+rotate 90
+move 1
+run Next
+
+#L
+run Prepare
+rotate 90
+move 1
+rotate 180
+move 1
+rotate 90
+move 2
+run Next
+
+#O
+run Prepare
+visible false
+rotate 90
+move 0.5
+visible true
+move 0
+repeat 36
+	rotate -10
+	move 0.17
+run Next
+
+#Prepare
+pos cursorX, cursorY
+dir 0
+
+#Next
+raise cursorX, 20

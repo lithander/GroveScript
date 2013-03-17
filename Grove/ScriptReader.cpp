@@ -32,7 +32,6 @@ bool ScriptReader::Read(std::istream& input, Processor* pProc)
 	mLine = "";
 	mCommentFlag = false;
 	mLineNumber = 0;
-	mTempVar = 0;
 	try
 	{
 		while(ReadLine())
@@ -340,18 +339,6 @@ void ScriptReader::ParseExpression(const std::string& token, Expression* out)
 // COMMAND GENERATION MACROS //
 //*****************************
 
-std::string ScriptReader::GetTempVar()
-{
-	std::stringstream ss;
-	ss << "_c" << mTempVar++;
-	return ss.str();
-}
-
-void ScriptReader::ReleaseTempVar()
-{
-	mTempVar--;
-}
-
 void ScriptReader::GenerateWhile()
 {
 	if(!ReadParam())
@@ -415,7 +402,7 @@ void ScriptReader::GenerateRepeat()
 {
 	if(!ReadParam())
 		Throw("'Repeat' expects iteration number!");
-	std::string varName = GetTempVar();
+	std::string varName = mProcPtr->GetTempVar();
 	GenerateCommand(SET_OP, varName+", "+mParamToken, mBlockDepth);//set _c0, expression
 	int depth = mBlockDepth+1;
 	GenerateCommand(GATE_OP, varName+"> 0", depth);				   //  cnd _c0 > 0"
@@ -423,7 +410,7 @@ void ScriptReader::GenerateRepeat()
 	GenerateCommand(SET_OP, varName+","+varName+"-1", depth);	//  set _c0, _c0-1
 	GenerateCommand(REPEAT_OP, depth);							//  repeat
 	GenerateCommand(NO_OP, depth-1);							// block end
-	ReleaseTempVar();
+	mProcPtr->ReleaseTempVar();
 }
 
 Instruction* ScriptReader::GenerateCommand(InstructionSet op, int depth)

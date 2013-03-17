@@ -24,7 +24,7 @@ repeat tt
 	pos 0, 0
 	set i, 0
 	set d, ibase*(1.5-t)
-	dir r*sin(time()*50)*720/tt+time()*36
+	dir r*sin(time()*40)*720/tt+time()*36
 	run Tree
 
 #color

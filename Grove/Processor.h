@@ -3,6 +3,7 @@
 #include "Sprout.h"
 #include "ProductionRule.h"
 #include "Command.h"
+#include <set>;
 
 namespace Weirwood
 {
@@ -33,7 +34,9 @@ namespace Weirwood
 		Instruction* AppendCommand(const std::string& seqId, InstructionSet type, int blockDepth);
 		ProductionRule* AppendProduction();
 
-		//IExpressionIndex
+		std::string GetTempVar();
+		void ReleaseTempVar();
+
 		int GetVarIndex(const std::string& name);
 		virtual Variables* GetVars() { return &mVars; }
 		virtual double GetTime();
@@ -74,6 +77,10 @@ namespace Weirwood
 		StateStack mTrash;
 		Sequences mSequences;
 		Structures mStructures;
+
+		int mTempVar;
+		typedef std::set<int> IndexList;
+		IndexList mTmpIndices;
 
 		//index tables
 		//TODO: add GetIndex("name") method to IndexTable class

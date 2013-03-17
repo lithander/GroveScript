@@ -13,20 +13,20 @@ repeat 4
 	grow frac, rules
 run frac
 
-#-[[
+#-{{
 rotate -25
 push
 push
 
-#]+
+#}+
 pop
 rotate 25
 
-#[+
+#{+
 push
 rotate 25
 
-#]-
+#}-
 pop
 rotate -25
 
@@ -37,5 +37,5 @@ move 1
 move 1
 
 #rules
-A => B -[[ A ]+ A ]+ B [+ B A ]- A
+A => B -{{ A }+ A }+ B {+ B A }- A
 B => B B

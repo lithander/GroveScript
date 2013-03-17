@@ -8,7 +8,6 @@ set iterations, floor(ibase)
 out iterations
 set growth, frac(ibase)
 out growth
-//run letscount
 
 seed Tree, Trunk X
 if iterations > 0

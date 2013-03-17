@@ -12,7 +12,7 @@ My aim in developing Grove was to allow the user to explore emergence in an iter
 
 All you have to do is execute Grove.exe, then drag&drop a scriptfile onto the application window.
 
-Press 'F' to toggle between window and fullscreen mode. 'D' toggles display of the debug log. 'S' toggles display of statistics.
+Press 'F' to toggle between window and fullscreen mode. 'D' toggles display of the debug log. 'S' toggles display of statistics. 'B' toggles Post-FX.
 
 If you want to modify the scripts open them in your favorite texteditor, modify and save them. The application will detect the change and update accordingly in an instant.
 

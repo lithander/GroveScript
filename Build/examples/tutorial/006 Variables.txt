@@ -1,23 +1,27 @@
 /*
-I've shown you how to define and run sequences.
+I've shown you how to define and run a sequence. Next we'll learn some tricks, that make sequences more useful.
 
-What makes sequences really usefull is that you can run sequences from within sequences.
-Using sequences from within sequences helps to get more complex stuff done without making a huge mess out of your code.
+The first thing worth mentioning is, that you can run sequences from within sequences.
+Using sequences that way allows you to structure your code into functional blocks. That way you get more complex stuff done without making a huge mess out of your code.
 
-Compare the code below with the one frome the last part. I've defined a sequence called "Hello" that run's the sequences to draw the individual characters.
+Compare the code below with the one frome the last part. It's easier to read and easier to maintain. I've defined a sequence called "Hello" that run's the sequences to draw the individual characters. That way I don't have to think about the low level stuff (like moving the turtle) when I wan't to draw "Hello" anymore. I don't even have to worry about the mid level stuff (rendering individual characters at the correct positions) anymore. I just set the cursor position and request hello to be printed and thats it.
+
+Set the cursor? Yeah. That's another neat trick.
 
 Every character subroutine run's two additional subroutine. One called "Prepare" and one's called "Next". These make the character subroutines really useful, because they take care of placing and moving the cursor positon. And they do that with variables!
 
 With the 'Set' command you can pick a name and associate a value to it. We define a two variables "cursorX" and "cursorX" to keep track of the cursor position. Whenever a character is going to be drawn it calls the "Prepare" subroutine that places the turtle at the current cursor position.
 After the character has been drawn, the "Next subroutine is run to move cursor position a little by changing the value of the "cursorX" variable. The 'Raise' command (actually it's a macro) adds the value of the second parameter to the variable passed as the first parameter.
+
+So, if the commands in your sequences use variables you can make them more useful. Like a sequence that not only draws a character but draws it at a specified position (cursorX and cursorY) and even changes that position so that the next time you wan't to draw a character it get's placed at the correct position.
+
 */
 
 size 2
-set alpha, 0.3
 set cursorX, -50
 set cursorY, -20
 
-rgb 1, 0, 0
+//Execute the commands from the Hello sequence
 run Hello
 
 //Now it's easy to draw 'Hello' multiple times or change it's color. 

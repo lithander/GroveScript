@@ -30,9 +30,6 @@ namespace Weirwood
 		bool ReadParam();
 		std::string mStoredLine;
 		void RestoreLine() { mStoredLine = mLine; };
-		int mTempVar;
-		std::string GetTempVar();
-		void ReleaseTempVar();
 		//Parsing
 		void ParseLine();
 		void ParseProductionRule();

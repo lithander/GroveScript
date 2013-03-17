@@ -41,7 +41,7 @@ move 1
 raise dist
 set light, 0.9
 run color
-size 2
+size 1
 move 1
 
 #color
