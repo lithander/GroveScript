@@ -87,6 +87,7 @@
     <ClInclude Include="Command.h" />
     <ClInclude Include="Expression.h" />
     <ClInclude Include="GroveApp.h" />
+    <ClInclude Include="Dictionary.h" />
     <ClInclude Include="Keywords.h" />
     <ClInclude Include="Processor.h" />
     <ClInclude Include="ProductionRule.h" />

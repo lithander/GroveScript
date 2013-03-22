@@ -28,7 +28,8 @@ bool ScriptReader::Read(std::istream& input, Processor* pProc)
 {
 	mStreamPtr = &input;
 	mProcPtr = pProc;
-	mId = "Root";
+	mSequenceId = "Root";
+	mMeta = "";
 	mLine = "";
 	mCommentFlag = false;
 	mLineNumber = 0;
@@ -120,7 +121,7 @@ void ScriptReader::ParseLine()
 			
 	//sequence
 	if(mLine.find('#') == 0)
-		mId = mLine.substr(1);
+		ParseMeta();
 	//production
 	else if(mLine.find("=>") != mLine.npos)
 		ParseProductionRule();
@@ -129,34 +130,62 @@ void ScriptReader::ParseLine()
 		ParseCommand();
 }
 
+void ScriptReader::ParseMeta()
+{
+	mMeta = mLine.substr(1);
+	//Meta as SequenceHeader
+	mSequenceParams.clear();
+	int cBegin = mMeta.find('(');
+	int cEnd = mMeta.find(')');
+	if(cBegin != mMeta.npos && cEnd != mMeta.npos)
+	{
+		std::string params = mLine.substr(cBegin+2, cEnd-cBegin-1);
+		std::string param;
+		int pos = -1;
+		int i = 0;
+		while(ParseParam(params, pos, param))
+			mSequenceParams[param] = i++;
+	}
+	mSequenceId = mMeta.substr(0, cBegin);
+}
+
 void ScriptReader::ParseProductionRule()
 {
 	mRulePtr = mProcPtr->AppendProduction();
 		
 	int pos = -1;
 	std::string tag;
-	while(ParseParam(mId, pos, tag))
+	while(ParseParam(mMeta, pos, tag))
 		mRulePtr->AddTag(tag);
 
-	//condition
-	int cBegin = mLine.find('[');
-	int cEnd = mLine.find(']');
-	if(cBegin != mLine.npos && cEnd != mLine.npos)
+	//split the line
+	std::string predecessor, successor, condition;
+	int cBegin = mLine.find('?');
+	int cEnd = mLine.find("=>");
+	if(cBegin != mLine.npos)
+	{
+		condition = mLine.substr(cBegin+1, cEnd-cBegin-2);
+		predecessor = mLine.substr(0, cBegin);
+		successor = mLine.substr(cEnd+2);
+	}
+	else
+	{
+		predecessor = mLine.substr(0, cEnd-1);
+		successor = mLine.substr(cEnd+2);
+	}
+
+	mProcPtr->ParseSymbolList(predecessor, mRulePtr->Predecessor());
+	mProcPtr->ParseSymbolList(successor, mRulePtr->Successor());
+	//attach condition
+	if(!condition.empty())
 	{
 		Expression cnd = Expression(mProcPtr);
 		cnd.SetDebugInfo(mLineNumber);
-		std::string condition = mLine.substr(cBegin+1, cEnd-1);
-		mLine.erase(cBegin, cEnd+1);
 		ParseExpression(condition, &cnd);
 		mRulePtr->SetCondition(cnd);
 	}
 
-	int splitPosition = mLine.find("=>");
-	std::string from = mLine.substr(0, splitPosition-1);
-	std::string to = mLine.substr(splitPosition+2);
-	mProcPtr->ParseSymbolList(from, mRulePtr->Predecessor());
-	mProcPtr->ParseSymbolList(to, mRulePtr->Successor());
-
+	//parse attached code
 	int depth = mBlockDepth+1;
 	ReadBlock(depth); //as long as mRulePtr is set, commands will get appended there
 	mRulePtr = NULL;
@@ -325,6 +354,8 @@ void ScriptReader::ParseExpression(const std::string& token, Expression* out)
 					Expression::TokenType tkn = Keywords::Token(token);
 					if(tkn != Expression::END)
 						out->PushToken(tkn);
+					else if(mSequenceParams.find(token) != mSequenceParams.end())
+						out->PushParam(mSequenceParams[token]);
 					else
 						out->PushVariable(mProcPtr->GetVarIndex(token));
 					//ch belongs to the next token
@@ -418,7 +449,7 @@ Instruction* ScriptReader::GenerateCommand(InstructionSet op, int depth)
 	if(mRulePtr)
 		return mRulePtr->AppendCommand(op, depth);
 	else
-		return mProcPtr->AppendCommand(mId, op, depth); 
+		return mProcPtr->AppendCommand(mSequenceId, op, depth); 
 }		
 
 void ScriptReader::GenerateCommand(InstructionSet op, const std::string& params, int depth)

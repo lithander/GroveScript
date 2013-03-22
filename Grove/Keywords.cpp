@@ -87,12 +87,13 @@ void Keywords::Init()
 {
 	//OPERATIONS
 	mOperations["MOV"] = MOVE_OP;
+	mOperations["CRV"] = CURVE_OP;
 	mOperations["POS"] = POSITION_OP;
 	mOperations["ROT"] = ROTATE_OP;
 	mOperations["DIR"] = DIRECTION_OP;
 	mOperations["AIM"] = AIM_OP;
 	mOperations["SZE"] = SIZE_OP;
-	mOperations["VIS"] = COLOR_RGB_OP;
+	mOperations["VIS"] = ALPHA_OP;
 	mOperations["RGB"] = COLOR_RGB_OP;
 	mOperations["HSV"] = COLOR_HSV_OP;
 	mOperations["SET"] = SET_OP;
@@ -109,6 +110,7 @@ void Keywords::Init()
 	mOperations["RPT"] = REPEAT_OP;
 
 	mOperations["MOVE"] = MOVE_OP;
+	mOperations["CURVE"] = CURVE_OP;
 	mOperations["POSITION"] = POSITION_OP;
 	mOperations["ROTATE"] = ROTATE_OP;
 	mOperations["DIRECTION"] = DIRECTION_OP;

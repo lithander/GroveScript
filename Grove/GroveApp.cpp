@@ -157,7 +157,7 @@ void Grove::draw()
 
 			//draw fbo+blur on window
 			gl::pushModelView();
-			gl::translate( Vec2f(0.0f, getWindowSize().y) );
+			gl::translate( Vec2f(0.0f, (float)getWindowSize().y) );
 			gl::scale( Vec3f(1, -1, 1) );
 			gl::color( Color::white() );
 			mCombineShader.bind();

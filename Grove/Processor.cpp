@@ -8,13 +8,13 @@
 
 using namespace Weirwood;
 
-Processor::Processor(Sprout* sproutPtr) : mTempVar(0)
+Processor::Processor(Sprout* sproutPtr) : mTempVar(0), mParamsPtr(NULL)
 {
 	mSproutPtr = sproutPtr;
-	mVars.reserve(20);
 	mProductions.reserve(20);
-	mSequences.reserve(20);
-	mStructures.reserve(10);
+	mVars.Reserve(20);
+	mSequences.Reserve(20);
+	mStructures.Reserve(10);
 }
 
 Processor::~Processor(void)
@@ -31,26 +31,23 @@ void Processor::Reset()
 		mTrash.pop();
 	}
 
+	mParamsPtr = &mNoParams;
 	mTempVar = 0;
-	mTmpIndices.clear();
+	mTempVarIndices.clear();
 	mValid = true;
 	mLog.clear();
 	mSproutPtr->Reset();
 
 	//delete Instructions appended to Sequences
-	for(Sequences::iterator it = mSequences.begin(); it != mSequences.end(); it++)
+	for(std::vector<CommandList>::iterator it = mSequences.Data().begin(); it != mSequences.Data().end(); it++)
 		for(CommandList::iterator it2 = it->begin(); it2 != it->end(); it2++)
 			delete *it2;
-	mVars.clear();
+	
 	mProductions.clear();
-	mSequences.clear();
-	mStructures.clear();
-
-	//index tables
-	mSequenceIndexTable.clear();
 	mSymbolIndexTable.clear();
-	mVarIndexTable.clear();
-	mStructureIndexTable.clear();
+	mVars.Clear();
+	mSequences.Clear();
+	mStructures.Clear();
 }
 
 void Processor::ClearStacks()
@@ -77,10 +74,10 @@ void Processor::Run(const std::string& seqId)
 		mSproutPtr->Reset();
 		ClearStacks();
 
-		for(Variables::iterator it = mVars.begin(); it != mVars.end(); it++)
+		for(std::vector<double>::iterator it = mVars.Data().begin(); it != mVars.Data().end(); it++)
 			(*it) = 0;
 
-		ExecuteSequence(mSequences[GetSequenceIndex(seqId)]);
+		ExecuteSequence(mSequences.Retrieve(seqId), mNoParams);
 		mSproutPtr->Flush();
 	}
 	catch(Error e)
@@ -93,22 +90,27 @@ void Processor::ExecuteSymbols(SymbolList& symbols)
 {
 	for(SymbolList::iterator seqIt = symbols.begin(); seqIt != symbols.end(); seqIt++)
 		if(*seqIt >= 0) //skip non-sequence symbols
-			ExecuteSequence(mSequences[*seqIt]);
+			ExecuteSequence(mSequences.Retrieve(*seqIt), mNoParams);
 }
 
-void Processor::ExecuteSequence(CommandList& seq)
+void Processor::ExecuteSequence(CommandList& seq, Variables& params)
 {
 	//store and restore internal variables
-	std::vector<int> tempVarValues;
-	tempVarValues.reserve(mTmpIndices.size());
-	for(IndexList::iterator it = mTmpIndices.begin(); it != mTmpIndices.end(); it++)
-		tempVarValues.push_back(mVars[*it]);
+	std::vector<double> tempVarValues;
+	tempVarValues.reserve(mTempVarIndices.size());
+	for(IndexList::iterator it = mTempVarIndices.begin(); it != mTempVarIndices.end(); it++)
+		tempVarValues.push_back(mVars.Retrieve(*it));
 
 	//store flow-ctrl state in case of recursion
 	CommandList::iterator next = mNextCommand;
 	CommandList::iterator begin = mSequenceBegin;
 	CommandList::iterator end = mSequenceEnd;
-	
+
+	//store parameters
+	Variables* oldParams = mParamsPtr;
+
+	//set parameters current
+	mParamsPtr = &params;
 	mSequenceEnd = seq.end();
 	mNextCommand = mSequenceBegin = seq.begin();
 	while(mNextCommand != mSequenceEnd)
@@ -117,15 +119,19 @@ void Processor::ExecuteSequence(CommandList& seq)
 		mNextCommand++;
 		ExecuteCommand(pCmd);
 	}
+
+	//restore params
+	mParamsPtr = oldParams;
+
 	//restore flow-ctrl state in case of recursion
 	mNextCommand = next;
 	mSequenceBegin = begin;
 	mSequenceEnd = end;
 
 	//store and restore internal variables
-	std::vector<int>::iterator storedValue = tempVarValues.begin();
-	for(IndexList::iterator it = mTmpIndices.begin(); it != mTmpIndices.end(); it++)
-		mVars[*it] = *storedValue++;
+	std::vector<double>::iterator storedValue = tempVarValues.begin();
+	for(IndexList::iterator it = mTempVarIndices.begin(); it != mTempVarIndices.end(); it++)
+		mVars.Data()[*it] = *storedValue++;
 }
 
 void Processor::ExecuteCommand(Instruction* pCmd)
@@ -136,6 +142,8 @@ void Processor::ExecuteCommand(Instruction* pCmd)
 	{
 	case MOVE_OP:
 		mSproutPtr->Move((float)pCmd->GetNumber(0)); break;
+	case CURVE_OP:
+		mSproutPtr->Curve((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1)); break;
 	case POSITION_OP:
 		mSproutPtr->SetPosition((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1)); break;
 	case ROTATE_OP:
@@ -147,13 +155,13 @@ void Processor::ExecuteCommand(Instruction* pCmd)
 	case SIZE_OP:
 		mSproutPtr->SetWidth((float)pCmd->GetNumber(0)); break;
 	case ALPHA_OP:
-		mSproutPtr->SetAlpha(pCmd->IsBoolean(0) ? (pCmd->GetBool(0) ? 1.0f : 0.0f) : pCmd->GetNumber(0)); break;
+		mSproutPtr->SetAlpha(pCmd->IsBoolean(0) ? (pCmd->GetBool(0) ? 1.0f : 0.0f) : (float)pCmd->GetNumber(0)); break;
 	case COLOR_RGB_OP:
 		mSproutPtr->SetColorRGB((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1), (float)pCmd->GetNumber(2)); break;
 	case COLOR_HSV_OP:
 		mSproutPtr->SetColorHSV((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1), (float)pCmd->GetNumber(2)); break;
 	case SET_OP:
-		SetVariable(pCmd->GetToken(0), pCmd->GetNumber(1)); break;
+		mVars.Insert(pCmd->GetToken(0), pCmd->GetNumber(1)); break;
 	case PUSH_OP:
 		PushState(pCmd->GetToken(0, "default")); break;
 	case POP_OP:
@@ -164,8 +172,6 @@ void Processor::ExecuteCommand(Instruction* pCmd)
 		Seed(pCmd->GetToken(0), pCmd->GetToken(1)); break;
 	case GROW_OP:
 		Grow(pCmd->GetToken(0), pCmd->GetToken(1)); break;
-	case EXE_OP:
-		Execute(pCmd->GetToken(0)); break;
 	case GATE_OP:
 		Gate(pCmd->GetBool(0), pCmd->GetBlockDepth()); break;
 	case BREAK_OP:
@@ -175,6 +181,12 @@ void Processor::ExecuteCommand(Instruction* pCmd)
 	case SRAND_OP:
 		srand((int)pCmd->GetNumber(0)); 
 		rand();
+		break;
+	case EXE_OP:
+		if(pCmd->IsFunction(0))
+			ExecuteWithParams(pCmd);
+		else
+			Execute(pCmd->GetToken(0));
 		break;
 	}
 }
@@ -210,9 +222,9 @@ void Processor::Repeat(int depth)
 
 void Processor::Seed(const std::string& structure, const std::string& axiom)
 {
-	int index = GetStructureIndex(structure);
-	mStructures[index].clear();
-	ParseSymbolList(axiom, mStructures[index]);
+	SymbolList& list = mStructures.Retrieve(structure);
+	list.clear();
+	ParseSymbolList(axiom, list);
 }
 
 void Processor::Grow(const std::string& structure, const std::string& ruleSet)
@@ -222,8 +234,7 @@ void Processor::Grow(const std::string& structure, const std::string& ruleSet)
 		ruleIt->Active = ruleIt->HasTag(ruleSet);
 
 	//apply active rules on structure
-	int index = GetStructureIndex(structure);
-	SymbolList& symbols = mStructures[index];
+	SymbolList& symbols = mStructures.Retrieve(structure);
 	SymbolList::iterator it = symbols.begin();
 	SymbolList::iterator end = symbols.end();
 	while(it != end)
@@ -235,7 +246,7 @@ void Processor::Grow(const std::string& structure, const std::string& ruleSet)
 			if(match)
 			{
 				if(!ruleIt->Commands().empty())
-					ExecuteSequence(ruleIt->Commands());
+					ExecuteSequence(ruleIt->Commands(), mNoParams);
 				break;
 			}
 		}
@@ -244,13 +255,24 @@ void Processor::Grow(const std::string& structure, const std::string& ruleSet)
 	}
 }
 
+void Processor::ExecuteWithParams(Instruction* pCmd)
+{
+	std::string name = pCmd->GetToken(0);
+	name = name.substr(0, name.find('('));
+	Variables params;
+	pCmd->GetParams(0, params);
+	if(mSequences.Contains(name))
+		ExecuteSequence(mSequences.Retrieve(name), params);
+	else
+		throw Error("No Sequence '"+name+"' is defined!");
+}
+
 void Processor::Execute(const std::string& name)
 {
-	IndexTable::const_iterator it = mSequenceIndexTable.find(name);
-	if(it != mSequenceIndexTable.end())
-		ExecuteSequence(mSequences[it->second]);
-	else if((it = mStructureIndexTable.find(name)) != mStructureIndexTable.end())
-		ExecuteSymbols(mStructures[it->second]);
+	if(mSequences.Contains(name))
+		ExecuteSequence(mSequences.Retrieve(name), mNoParams);
+	else if(mStructures.Contains(name))
+		ExecuteSymbols(mStructures.Retrieve(name));
 	else
 		throw Error("Neither Sequence nor Structure '"+name+"' is defined!");
 }
@@ -265,7 +287,7 @@ void Processor::PushState(const std::string& stackId)
 		pState = mTrash.top();
 		mTrash.pop();
 	}
-	pState->Vars = mVars;
+	pState->Vars = mVars.Data();
 	mSproutPtr->ToState(pState->Sprout);
 	mStacks[stackId].push(pState);
 }
@@ -273,7 +295,7 @@ void Processor::PushState(const std::string& stackId)
 void Processor::PopState(const std::string& stackId)
 {
 	State* pState = mStacks[stackId].top();
-	mVars = pState->Vars;
+	mVars.Data() = pState->Vars;
 	mSproutPtr->FromState(pState->Sprout);
 	mTrash.push(pState);
 	mStacks[stackId].pop();
@@ -340,11 +362,10 @@ int Processor::GetSymbolIndex(const std::string& name)
 		return it->second;
 	else
 	{
-		IndexTable::iterator it = mSequenceIndexTable.find(name);
-		if(it != mSequenceIndexTable.end())
+		if(mSequences.Contains(name))
 		{
 			//Symbol is a Sequence: return sequence index and cache it for next query
-			int index = it->second;
+			int index = mSequences.IndexOf(name);
 			mSymbolIndexTable[name] = index;
 			return index;
 		}
@@ -364,75 +385,16 @@ ProductionRule* Processor::AppendProduction()
 Instruction* Processor::AppendCommand(const std::string& seqId, InstructionSet type, int blockDepth)
 {
 	Instruction* pCmd = new Instruction(type, blockDepth);
-	mSequences[GetSequenceIndex(seqId)].push_back(pCmd);
+	mSequences.Retrieve(seqId).push_back(pCmd);
 	return pCmd;
 }
-
-int Processor::GetSequenceIndex(const std::string& name)
-{
-	IndexTable::iterator it = mSequenceIndexTable.find(name);
-	if(it != mSequenceIndexTable.end())
-		return it->second;
-	else
-	{
-		//insert
-		int index = mSequences.size();
-		mSequences.resize(index+1);
-		mSequenceIndexTable[name] = index; //eg last index after resize
-		return index;
-	}
-}
-
-int Processor::GetStructureIndex(const std::string& name)
-{
-	IndexTable::iterator it = mStructureIndexTable.find(name);
-	if(it != mStructureIndexTable.end())
-		return it->second;
-	else
-	{
-		//insert
-		int index = mStructures.size();
-		mStructures.resize(index+1);
-		mStructureIndexTable[name] = index; //eg last index after resize
-		return index;
-	}
-}
-
-void Processor::SetVariable(const std::string& name, double value)
-{
-	IndexTable::iterator it = mVarIndexTable.find(name);
-	if(it != mVarIndexTable.end())
-		mVars[it->second] = value;
-	else
-	{
-		//insert
-		mVars.push_back(value);
-		mVarIndexTable[name] = mVars.size() -1; //eg last index after resize
-	}
-}
-
-int Processor::GetVarIndex(const std::string& name)
-{
-	IndexTable::iterator it = mVarIndexTable.find(name);
-	if(it != mVarIndexTable.end())
-		return it->second;
-	else
-	{
-		//insert
-		int index = mVars.size();
-		mVars.resize(index+1);
-		mVarIndexTable[name] = index;
-		return index;
-	}
-}
-
 
 std::string Processor::GetTempVar()
 {
 	std::stringstream ss;
 	ss << "_c" << mTempVar++;
 	std::string varName = ss.str();
-	mTmpIndices.insert(GetVarIndex(varName));
+	mTempVarIndices.insert(GetVarIndex(varName));
 	return varName;
 }
 

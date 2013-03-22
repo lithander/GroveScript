@@ -19,11 +19,14 @@ namespace Weirwood
 		int mBlockDepth;
 		int mLineNumber;
 		int mPos;
-		std::string mId;
+		std::string mMeta;
 		std::string mLine;
 		std::string mToken;
 		std::string mParamToken;
 		ProductionRule* mRulePtr;
+		//Meta as SequenceHeader
+		std::string mSequenceId;
+		IndexTable mSequenceParams;
 		//Helpers
 		bool ReadLine();
 		bool ReadToken();
@@ -32,6 +35,7 @@ namespace Weirwood
 		void RestoreLine() { mStoredLine = mLine; };
 		//Parsing
 		void ParseLine();
+		void ParseMeta();
 		void ParseProductionRule();
 		void ParseCommand();
 		bool ParseParam(const std::string& token, int& out_pos, std::string& out);

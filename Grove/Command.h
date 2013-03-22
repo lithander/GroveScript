@@ -36,12 +36,15 @@ namespace Weirwood
 			return mBlockDepth;
 		}
 
-		std::string GetToken(int index) const;
-		std::string GetToken(int index, const std::string& defaultToken) const;
+		//TODO:return const references?
+		const std::string& GetToken(int index) const;
+		const std::string& GetToken(int index, const std::string& defaultToken) const;
 		double GetNumber(int index) const;
 		double GetNumber(int index, double defaultValue) const;
+		void GetParams(int index, Variables& out_params) const;
 		bool GetBool(int index) const;
 		bool IsBoolean(int index) const;
+		bool IsFunction(int index) const;
 		bool IsExpression(int index) const;
 	protected:
 		int mLineNumber;
@@ -74,7 +77,7 @@ namespace Weirwood
 	{
 		if(index >= (int)mExpressions.size())
 			return defaultValue;
-		return mExpressions[index].AsNumber();;
+		return mExpressions[index].AsNumber();
 	}
 
 	template <typename T>
@@ -90,7 +93,7 @@ namespace Weirwood
 	}
 
 	template <typename T>
-	std::string Command<T>::GetToken(int index) const
+	const std::string& Command<T>::GetToken(int index) const
 	{
 		if(index >= (int)mExpressions.size())
 		{
@@ -102,11 +105,23 @@ namespace Weirwood
 	}
 
 	template <typename T>
-	std::string Command<T>::GetToken(int index, const std::string& defaultToken) const
+	const std::string& Command<T>::GetToken(int index, const std::string& defaultToken) const
 	{
 		if(index >= (int)mExpressions.size())
 			return defaultToken;
 		return mTokens[index];
+	}
+
+	template <typename T>
+	void Command<T>::GetParams(int index, Variables& out_params) const
+	{
+		if(index >= (int)mExpressions.size())
+		{
+			std::stringstream ss;
+			ss << "Line " << mLineNumber << ": Not enough parameters!";
+			throw Error(ss.str());
+		}
+		mExpressions[index].AsParams(out_params);
 	}
 
 	template <typename T>
@@ -127,6 +142,14 @@ namespace Weirwood
 			return false;
 	}
 
+	template <typename T>
+	bool Command<T>::IsFunction(int index) const
+	{
+		if(index < (int)mExpressions.size())
+			return mExpressions[index].IsFunction();
+		else
+			return false;
+	}
 
 }
 

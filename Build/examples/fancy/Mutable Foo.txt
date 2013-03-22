@@ -46,9 +46,11 @@ rotate 90
 size size
 
 #ResolveFoo
-[i = 0] Foo => Red Base
+Foo ? i = 0 => Red Base
 	raise i
-[i = 1] Foo => Green Base
+Foo ? i = 1 => Green Base
+	raise i
+Foo ? i = 1 => Green Base
 	raise i
 Foo => Blue Base
 	set i, 0

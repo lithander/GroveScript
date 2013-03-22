@@ -29,6 +29,8 @@ namespace Weirwood
 		void SetWidth(float width);
 
 		void Move(float units);
+		void Curve(float degree, float radius);
+
 		void SetPosition(float x, float y);
 
 		void Rotate(float degree);

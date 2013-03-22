@@ -36,6 +36,7 @@ namespace Weirwood
 		ROTATE_OP,
 		DIRECTION_OP,
 		AIM_OP,
+		CURVE_OP,
 		SIZE_OP,
 		ALPHA_OP,
 		COLOR_RGB_OP,
@@ -68,15 +69,14 @@ namespace Weirwood
 	
 	//Types
 	typedef Command<InstructionSet> Instruction;
-	typedef std::map<std::string, double> VarTable;
+	typedef std::vector<Instruction*> CommandList;
+
+	typedef std::map<std::string, int> IndexTable;
 	typedef std::list<std::string> StringList;
 	typedef std::list<int> SymbolList;
 
-	typedef std::vector<Instruction*> CommandList;
-	typedef std::vector<CommandList> Sequences;
-	typedef std::vector<ProductionRule> Productions;
 	typedef std::vector<double> Variables;
-	typedef std::vector<SymbolList> Structures;
+	typedef std::vector<ProductionRule> Productions;
 
 	//Utility
 	void SplitString(const std::string& input, StringList& output);

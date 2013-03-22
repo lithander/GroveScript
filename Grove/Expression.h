@@ -7,7 +7,8 @@ namespace Weirwood
 	{
 	public:
 		virtual int GetVarIndex(const std::string& name) = NULL;
-		virtual Variables* GetVars() = NULL;
+		virtual double GetVar(int index) = NULL;
+		virtual double GetParam(int index) = NULL;
 		virtual double GetTime() = NULL;
 		virtual void Log(const std::string& msg) = NULL;
 		virtual void Abort(const std::string& msg) = NULL;
@@ -21,6 +22,7 @@ namespace Weirwood
 		  END,
 		  NUMBER,
 		  VAR,
+		  PARAM,
 		  FUNCTION,
 		  LP,		
 		  RP,
@@ -84,10 +86,13 @@ namespace Weirwood
 		void PushFunction(FunctionSet func);
 		void PushNumber(double value);
 		void PushVariable(int varIdx);
+		void PushParam(int paramIdx);
 		double AsNumber() const;
 		bool AsBool() const;
+		void AsParams(Variables& out_params) const;
 		bool IsBoolean() const;
 		bool IsEmpty() const;
+		bool IsFunction() const;
 	private:
 		IExpressionContext* mContextPtr;
 		
@@ -125,7 +130,6 @@ namespace Weirwood
 		
 		//current evaluation state
 		mutable TokenType mType;
-		mutable Variables* mVarsPtr;
 		mutable int mTokenIndex;
 		mutable int mDataIndex;
 	};

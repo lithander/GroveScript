@@ -3,14 +3,14 @@
 #include "Sprout.h"
 #include "ProductionRule.h"
 #include "Command.h"
-#include <set>;
+#include "Dictionary.h"
+#include <set>
 
 namespace Weirwood
 {
 	class Processor : public IExpressionContext
 	{
 	public:
-		typedef std::map<std::string, int> IndexTable;
 		typedef std::list<std::string> LogMessageList;
 
 		//STATE STACK
@@ -37,8 +37,19 @@ namespace Weirwood
 		std::string GetTempVar();
 		void ReleaseTempVar();
 
-		int GetVarIndex(const std::string& name);
-		virtual Variables* GetVars() { return &mVars; }
+		virtual int GetVarIndex(const std::string& varName) { return mVars.IndexOf(varName); }
+		virtual double GetVar(int i) 
+		{ 
+			return mVars.Retrieve(i); 
+		}
+		virtual double GetParam(int i) 
+		{ 
+			if(mParamsPtr->size() > i)
+				return mParamsPtr->at(i); 
+			else
+				return 0.0;
+		}
+		
 		virtual double GetTime();
 		virtual void Log(const std::string& msg);
 		virtual void Abort(const std::string& msg);
@@ -46,17 +57,17 @@ namespace Weirwood
 		void ParseSymbolList(const std::string& line, SymbolList& out_symbols);
 	private:
 		void ExecuteSymbols(SymbolList& symbols);
-		void ExecuteSequence(CommandList& sequence);
+		void ExecuteSequence(CommandList& sequence, Variables& params);
 		void ExecuteCommand(Instruction* cmd);
 
 		//Commands
-		void SetVariable(const std::string& name, double value);
 		void PushState(const std::string& stackId);
 		void PopState(const std::string& stackId);
 		void ClearStacks();
 		void Seed(const std::string& structure, const std::string& axiom);
 		void Grow(const std::string& structure, const std::string& ruleSet);
 		void Execute(const std::string& structOrSeqName);
+		void ExecuteWithParams(Instruction* cmd);
 		void Gate(bool condition, int depth);
 		void Break(int depth);
 		void Repeat(int depth);
@@ -68,30 +79,26 @@ namespace Weirwood
 
 		//input&state
 		bool mValid;
-		CommandList::iterator mNextCommand;
-		CommandList::iterator mSequenceBegin;
-		CommandList::iterator mSequenceEnd;
-		Variables mVars;
+		Dictionary<double> mVars;
+		Dictionary<CommandList> mSequences;
+		Dictionary<SymbolList> mStructures;
 		Productions mProductions;
 		StateStackTable mStacks;
 		StateStack mTrash;
-		Sequences mSequences;
-		Structures mStructures;
+
+		//call state
+		Variables mNoParams;
+		Variables* mParamsPtr;
+		CommandList::iterator mNextCommand;
+		CommandList::iterator mSequenceBegin;
+		CommandList::iterator mSequenceEnd;
 
 		int mTempVar;
 		typedef std::set<int> IndexList;
-		IndexList mTmpIndices;
+		IndexList mTempVarIndices;
 
-		//index tables
-		//TODO: add GetIndex("name") method to IndexTable class
-		IndexTable mStructureIndexTable;
-		IndexTable mSequenceIndexTable;
 		IndexTable mSymbolIndexTable;
-		IndexTable mVarIndexTable;
-
-		int GetSequenceIndex(const std::string& name);
 		int GetSymbolIndex(const std::string& name);
-		int GetStructureIndex(const std::string& name);
 	};
 }
 

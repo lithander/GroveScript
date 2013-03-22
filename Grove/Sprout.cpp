@@ -67,6 +67,30 @@ void Sprout::SetWidth(float width)
 	glLineWidth(width);
 }
 
+void Sprout::Curve(float rotationDegree, float radiusUnits)
+{
+	Render(true);
+	//negative radius isn't allowed but sign of degree is important
+	int sign = rotationDegree < 0 ? -1 : 1;
+	//vector from point of rotation to current position
+	Vec2f vR = sign * abs(radiusUnits) * Vec2f(mDirection.y, -mDirection.x);
+	//point of rotation
+	Vec2f pR = mPosition - vR;
+	//degrees per step so it looks smooth
+	float stepAngle = (2.0/mUnitLength*360)/(6.283*abs(radiusUnits)); //2 pixel steps on the circumference
+	//do as many steps as needed to reach target angle
+	float angle = 0;
+	while(angle < abs(rotationDegree))
+	{
+		angle = std::min(angle+stepAngle, abs(rotationDegree));
+		Vec2f v = vR;
+		v.rotate(toRadians(sign*angle));
+		mPosition = pR+v;
+		glVertex2f(mPosition);
+	}
+	mDirection.rotate(toRadians(rotationDegree));
+}
+
 void Sprout::Move(float units)
 {
 	Render(true);

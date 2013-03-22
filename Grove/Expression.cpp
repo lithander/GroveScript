@@ -5,12 +5,11 @@
 
 using namespace Weirwood;
 
-Expression::Expression() : mContextPtr(NULL), mLineNumber(-1), mVarsPtr(NULL)
+Expression::Expression() : mContextPtr(NULL), mLineNumber(-1)
 {
-
 }
 
-Expression::Expression(IExpressionContext* pContext) : mContextPtr(pContext), mLineNumber(-1), mVarsPtr(NULL)
+Expression::Expression(IExpressionContext* pContext) : mContextPtr(pContext), mLineNumber(-1)
 {
 }
 
@@ -41,6 +40,12 @@ void Expression::PushVariable(int varIdx)
 	mData.push_back(TokenData(varIdx)); 
 };
 
+void Expression::PushParam(int paramIdx)
+{
+	mTokens.push_back(PARAM); 
+	mData.push_back(TokenData(paramIdx)); 
+}
+
 void Expression::Throw(std::string error) const
 {
 	std::stringstream ss;
@@ -55,6 +60,11 @@ bool Expression::IsEmpty() const
 	return mTokens.empty();
 }
 
+bool Expression::IsFunction() const
+{
+	return !mTokens.empty() && mTokens.front() == FUNCTION;
+}
+
 bool Expression::IsBoolean() const
 {
 	for(std::vector<TokenType>::const_iterator it = mTokens.begin(); it != mTokens.end(); it++)
@@ -64,9 +74,20 @@ bool Expression::IsBoolean() const
 	return false;
 }
 
+void Expression::AsParams(Variables& out_params) const
+{	
+	if(mTokens[0] != FUNCTION)
+		Throw("Function expected!");
+
+	mTokenIndex = 1;
+	mDataIndex = 1;
+	mType = END;
+	while(mType != RP)
+		out_params.push_back(EvalA1());
+}
+
 double Expression::AsNumber() const
 {
-	mVarsPtr = mContextPtr->GetVars();
 	mType = END;
 	mTokenIndex = 0;
 	mDataIndex = 0;
@@ -75,7 +96,6 @@ double Expression::AsNumber() const
 
 bool Expression::AsBool() const
 {
-	mVarsPtr = mContextPtr->GetVars();
 	mType = END;
 	mTokenIndex = 0;
 	mDataIndex = 0;
@@ -235,7 +255,14 @@ double Expression::EvalA4() const
 		{
 			int idx = mData[mDataIndex++].VarIndex;
 			mType = mTokens[mTokenIndex++];
-			return mVarsPtr->at(idx);
+			return mContextPtr->GetVar(idx);
+		}
+		//param
+		case PARAM :
+		{
+			int idx = mData[mDataIndex++].VarIndex;
+			mType = mTokens[mTokenIndex++];
+			return mContextPtr->GetParam(idx);
 		}
 		case FUNCTION :
 		{
