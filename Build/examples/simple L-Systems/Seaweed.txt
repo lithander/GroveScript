@@ -25,5 +25,5 @@ rotate -22
 move 0.8
 
 #rule
-F => F F - / - F + F + F \ + / + F - F - F \
+F -> F F - / - F + F + F \ + / + F - F - F \
 

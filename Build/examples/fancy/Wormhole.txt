@@ -38,4 +38,4 @@ rotate -88
 move step*2
 
 #rules
-X => - F F + F F + F + F - F - F F X
+X -> - F F + F F + F + F - F - F F X

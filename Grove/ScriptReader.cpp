@@ -6,10 +6,9 @@
 
 using namespace Weirwood;
 
-ScriptReader::ScriptReader(void) : mProcPtr(NULL), mLineNumber(-1), mBlockDepth(0), mGeneratingCode(false), mStreamPtr(NULL), mRulePtr(NULL)
+ScriptReader::ScriptReader(void) : mProcPtr(NULL), mLineNumber(-1), mBlockDepth(0), mStreamPtr(NULL), mRulePtr(NULL)
 {
 }
-
 
 ScriptReader::~ScriptReader(void)
 {
@@ -123,7 +122,7 @@ void ScriptReader::ParseLine()
 	if(mLine.find('#') == 0)
 		ParseMeta();
 	//production
-	else if(mLine.find("=>") != mLine.npos)
+	else if(mLine.find("->") != mLine.npos)
 		ParseProductionRule();
 	//commands
 	else 
@@ -133,20 +132,31 @@ void ScriptReader::ParseLine()
 void ScriptReader::ParseMeta()
 {
 	mMeta = mLine.substr(1);
-	//Meta as SequenceHeader
-	mSequenceParams.clear();
-	int cBegin = mMeta.find('(');
-	int cEnd = mMeta.find(')');
-	if(cBegin != mMeta.npos && cEnd != mMeta.npos)
+	//always treat meta as sequence without checking
+	ParseParamNames(mMeta, mActiveParams);
+	int cEndOfId = mMeta.find('(');
+	mSequenceId = mMeta.substr(0, cEndOfId);
+}
+
+void ScriptReader::ParseParamNames(const std::string& token, IndexTable& out)
+{
+	out.clear();
+	int offset = 0;
+	int cBegin = token.find('(');
+	int cEnd = token.find(')');
+	while(cBegin != token.npos && cEnd != token.npos)
 	{
-		std::string params = mLine.substr(cBegin+2, cEnd-cBegin-1);
-		std::string param;
+		std::string params = token.substr(cBegin+1, cEnd-cBegin-1);
 		int pos = -1;
 		int i = 0;
+		std::string param;
 		while(ParseParam(params, pos, param))
-			mSequenceParams[param] = i++;
-	}
-	mSequenceId = mMeta.substr(0, cBegin);
+			out[param] = i++;
+
+		offset = cEnd;
+		cBegin = token.find('(', offset+1);
+		cEnd = token.find(')', offset+1);
+	}	
 }
 
 void ScriptReader::ParseProductionRule()
@@ -160,8 +170,8 @@ void ScriptReader::ParseProductionRule()
 
 	//split the line
 	std::string predecessor, successor, condition;
-	int cBegin = mLine.find('?');
-	int cEnd = mLine.find("=>");
+	int cBegin = mLine.find(':');
+	int cEnd = mLine.find("->");
 	if(cBegin != mLine.npos)
 	{
 		condition = mLine.substr(cBegin+1, cEnd-cBegin-2);
@@ -176,15 +186,17 @@ void ScriptReader::ParseProductionRule()
 
 	mProcPtr->ParseSymbolList(predecessor, mRulePtr->Predecessor());
 	mProcPtr->ParseSymbolList(successor, mRulePtr->Successor());
-	//attach condition
+	//extract param names from predecessor (overriding mActiveParams and not restoring)
+	ParseParamNames(predecessor, mActiveParams);
+	//init param generating expression from successor
+	if(!mActiveParams.empty())
+		ParseExpression(successor, &mRulePtr->ParamGenerator());
+	//init condition
 	if(!condition.empty())
 	{
-		Expression cnd = Expression(mProcPtr);
-		cnd.SetDebugInfo(mLineNumber);
-		ParseExpression(condition, &cnd);
-		mRulePtr->SetCondition(cnd);
+		mRulePtr->Condition().SetDebugInfo(mLineNumber);
+		ParseExpression(condition, &mRulePtr->Condition());
 	}
-
 	//parse attached code
 	int depth = mBlockDepth+1;
 	ReadBlock(depth); //as long as mRulePtr is set, commands will get appended there
@@ -250,8 +262,8 @@ bool ScriptReader::ParseParam(const std::string& token, int& inout_pos, std::str
 			parenDepth++;
 		else if(c == ')')
 			parenDepth--;
-		
-		out.push_back(c);
+
+		out += c;
 	}
 	//Check if parenthesis were nested okay
 	if(parenDepth != 0)
@@ -263,7 +275,7 @@ bool ScriptReader::ParseParam(const std::string& token, int& inout_pos, std::str
 	return out.length() > 0;
 }
 
-void ScriptReader::ParseExpression(const std::string& token, Expression* out)
+void ScriptReader::ParseExpression(const std::string& token, Expression* out, bool checkVarNames)
 {
 	//detect string-literal
 	if(token.find('\'') != token.npos)
@@ -335,7 +347,7 @@ void ScriptReader::ParseExpression(const std::string& token, Expression* out)
 				break;
 			//string token (function or variable)
 			default:
-				if (!mGeneratingCode && !isalpha(ch)) //tolerate prefixed variables for generated code
+				if (checkVarNames && !isalpha(ch)) //tolerate prefixed variables for generated code
 				{
 					std::stringstream ss;
 					ss << "Symbol '" << ch << "' in Line " << mLineNumber << " is not understood!";
@@ -354,8 +366,8 @@ void ScriptReader::ParseExpression(const std::string& token, Expression* out)
 					Expression::TokenType tkn = Keywords::Token(token);
 					if(tkn != Expression::END)
 						out->PushToken(tkn);
-					else if(mSequenceParams.find(token) != mSequenceParams.end())
-						out->PushParam(mSequenceParams[token]);
+					else if(mActiveParams.find(token) != mActiveParams.end())
+						out->PushParam(mActiveParams[token]);
 					else
 						out->PushVariable(mProcPtr->GetVarIndex(token));
 					//ch belongs to the next token
@@ -454,16 +466,14 @@ Instruction* ScriptReader::GenerateCommand(InstructionSet op, int depth)
 
 void ScriptReader::GenerateCommand(InstructionSet op, const std::string& params, int depth)
 {
-	mGeneratingCode = true;
 	Instruction* pCmd = GenerateCommand(op, depth); 
 	int pos = -1;
 	std::string param;
 	while(ParseParam(params, pos, param))
 	{
 		Expression exp(mProcPtr);
-		ParseExpression(param, &exp);
+		ParseExpression(param, &exp, false);
 		pCmd->PushParam(param, exp); //exp will be copied. It's 64 bytes so it should be okay. (std::string is 32byte in comparision)
 	}
-	mGeneratingCode = false;
 }
 

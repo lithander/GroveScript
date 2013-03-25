@@ -22,5 +22,5 @@ rotate -90
 move 0.7
 
 #rules
-B => B + C A
-C => A B - C
+B -> B + C A
+C -> A B - C

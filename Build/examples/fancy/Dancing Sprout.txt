@@ -52,7 +52,7 @@ pop default
 rot 45+sin(t*100)*3
 
 #TrunkRules
-X => BranchA F BranchB F X
+X -> BranchA F BranchB F X
 
 #LeafRules
-X => BranchA F X BranchB F X
+X -> BranchA F X BranchB F X

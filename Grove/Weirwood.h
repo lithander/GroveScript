@@ -21,13 +21,6 @@ namespace Weirwood
 	class Expression;
 	class ProductionRule;
 
-	struct Error : public std::exception
-	{
-		std::string desc;
-		Error(std::string errorDesc) : desc(errorDesc) {}
-		const char* what() const throw() { return desc.c_str(); }
-	};
-
 	enum InstructionSet
 	{
 		NO_OP,
@@ -73,10 +66,31 @@ namespace Weirwood
 
 	typedef std::map<std::string, int> IndexTable;
 	typedef std::list<std::string> StringList;
-	typedef std::list<int> SymbolList;
 
 	typedef std::vector<double> Variables;
-	typedef std::vector<ProductionRule> Productions;
+	typedef std::vector<ProductionRule*> Productions;
+
+	struct Error : public std::exception
+	{
+		std::string desc;
+		Error(std::string errorDesc) : desc(errorDesc) {}
+		const char* what() const throw() { return desc.c_str(); }
+	};
+
+	struct Symbol
+	{
+		enum SymbolType
+		{
+			VOID,
+			STRUCTURE,
+			SEQUENCE
+		};
+		SymbolType Type; 
+		int Index;
+		Variables Params;
+	};
+
+	typedef std::list<Symbol> SymbolList;
 
 	//Utility
 	void SplitString(const std::string& input, StringList& output);

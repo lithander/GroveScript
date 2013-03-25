@@ -52,8 +52,8 @@ visible 1-dist/100
 
 
 #thinnest
-F => F - / - B + B + B \ + F / + B - B - B \
+F -> F - / - B + B + B \ + F / + B - B - B \
 #thin
-G => G G - / + F \ + / - F \
+G -> G G - / + F \ + / - F \
 #thick
-G => G G - - / - G + + G - G \ + + / + G - G + G \
+G -> G G - - / - G + + G - G \ + + / + G - G + G \

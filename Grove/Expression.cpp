@@ -60,11 +60,6 @@ bool Expression::IsEmpty() const
 	return mTokens.empty();
 }
 
-bool Expression::IsFunction() const
-{
-	return !mTokens.empty() && mTokens.front() == FUNCTION;
-}
-
 bool Expression::IsBoolean() const
 {
 	for(std::vector<TokenType>::const_iterator it = mTokens.begin(); it != mTokens.end(); it++)
@@ -74,16 +69,24 @@ bool Expression::IsBoolean() const
 	return false;
 }
 
-void Expression::AsParams(Variables& out_params) const
+void Expression::ResolveParams(SymbolList& out_symbols) const
 {	
-	if(mTokens[0] != FUNCTION)
-		Throw("Function expected!");
-
 	mTokenIndex = 1;
 	mDataIndex = 1;
-	mType = END;
-	while(mType != RP)
-		out_params.push_back(EvalA1());
+	mType = mTokens[0];
+	SymbolList::iterator it = out_symbols.begin();
+	while(it != out_symbols.end() && (mType == FUNCTION || mType == VAR))
+	{
+		int varIdx = 0;
+		it->Params.clear();
+		if(mType == FUNCTION)
+			while(mType != RP)
+				it->Params.push_back(EvalA1());
+
+		mDataIndex++;//don't care for the data, it's void anyway
+		mType = mTokens[mTokenIndex++];
+		it++;
+	}
 }
 
 double Expression::AsNumber() const

@@ -37,24 +37,16 @@ namespace Weirwood
 		std::string GetTempVar();
 		void ReleaseTempVar();
 
-		virtual int GetVarIndex(const std::string& varName) { return mVars.IndexOf(varName); }
-		virtual double GetVar(int i) 
-		{ 
-			return mVars.Retrieve(i); 
-		}
-		virtual double GetParam(int i) 
-		{ 
-			if(mParamsPtr->size() > i)
-				return mParamsPtr->at(i); 
-			else
-				return 0.0;
-		}
-		
+		int GetVarIndex(const std::string& varName);
+
+		//IExecutionContext
+		virtual double GetVar(int i);
+		virtual double GetParam(int i);
 		virtual double GetTime();
 		virtual void Log(const std::string& msg);
 		virtual void Abort(const std::string& msg);
-		//SymbolList creation
-		void ParseSymbolList(const std::string& line, SymbolList& out_symbols);
+
+		void ParseSymbolList(const std::string& line, SymbolList& out_symbols, bool searchStructures = false);
 	private:
 		void ExecuteSymbols(SymbolList& symbols);
 		void ExecuteSequence(CommandList& sequence, Variables& params);
@@ -64,10 +56,12 @@ namespace Weirwood
 		void PushState(const std::string& stackId);
 		void PopState(const std::string& stackId);
 		void ClearStacks();
-		void Seed(const std::string& structure, const std::string& axiom);
 		void Grow(const std::string& structure, const std::string& ruleSet);
-		void Execute(const std::string& structOrSeqName);
-		void ExecuteWithParams(Instruction* cmd);
+		void Seed(Instruction* pCmd);
+		void Run(Instruction* pCmd);
+		void Shuffle(int seed);
+		//void Execute(const std::string& structOrSeqName);
+		//void ExecuteWithParams(Instruction* cmd);
 		void Gate(bool condition, int depth);
 		void Break(int depth);
 		void Repeat(int depth);
@@ -87,7 +81,6 @@ namespace Weirwood
 		StateStack mTrash;
 
 		//call state
-		Variables mNoParams;
 		Variables* mParamsPtr;
 		CommandList::iterator mNextCommand;
 		CommandList::iterator mSequenceBegin;
@@ -96,9 +89,6 @@ namespace Weirwood
 		int mTempVar;
 		typedef std::set<int> IndexList;
 		IndexList mTempVarIndices;
-
-		IndexTable mSymbolIndexTable;
-		int GetSymbolIndex(const std::string& name);
 	};
 }
 

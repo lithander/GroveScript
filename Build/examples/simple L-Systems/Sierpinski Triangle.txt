@@ -23,5 +23,5 @@ move 0.5
 move 0.5
 
 #rules
-A =>B - A - B
-B =>A + B + A
+A ->B - A - B
+B ->A + B + A

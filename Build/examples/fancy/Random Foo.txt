@@ -49,12 +49,12 @@ rotate 90
 size size
 
 #ResolveFoo
-Foo ? rnd() > 0.6 => Red Base
-Foo ? rnd() < 0.3 => Green Base
-Foo => Blue Base
+Foo : rnd() >= 0.5 -> Red Base
+Foo : rnd() <= 0.3 -> Green Base
+Foo -> Blue Base
 	
 #RightRule
-Right => Right Left Foo Left Right
+Right -> Right Left Foo Left Right
 
 #LeftRule
-Left => Left Right Foo Right Left
+Left -> Left Right Foo Right Left

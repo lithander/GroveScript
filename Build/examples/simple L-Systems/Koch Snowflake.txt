@@ -21,4 +21,4 @@ rotate -60
 move 1
 
 #rules
-A => A - A + + A - A
+A -> A - A + + A - A

@@ -6,10 +6,10 @@ namespace Weirwood
 	class IExpressionContext
 	{
 	public:
-		virtual int GetVarIndex(const std::string& name) = NULL;
 		virtual double GetVar(int index) = NULL;
 		virtual double GetParam(int index) = NULL;
 		virtual double GetTime() = NULL;
+		//TODO: little messy to handle log's that way. singleton? exeptions?
 		virtual void Log(const std::string& msg) = NULL;
 		virtual void Abort(const std::string& msg) = NULL;
 	};
@@ -89,10 +89,9 @@ namespace Weirwood
 		void PushParam(int paramIdx);
 		double AsNumber() const;
 		bool AsBool() const;
-		void AsParams(Variables& out_params) const;
+		void ResolveParams(SymbolList& out_symbols) const;
 		bool IsBoolean() const;
 		bool IsEmpty() const;
-		bool IsFunction() const;
 	private:
 		IExpressionContext* mContextPtr;
 		

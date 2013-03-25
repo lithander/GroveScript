@@ -20,8 +20,8 @@ rotate -60
 move 0.8
 
 #rules
-X => X + Y F + + Y F - F X - - F X F X - Y F +
-Y => - F X + Y F Y F + + Y F + F X - - F X - Y
+X -> X + Y F + + Y F - F X - - F X F X - Y F +
+Y -> - F X + Y F Y F + + Y F + F X - - F X - Y
 
 
 

@@ -26,7 +26,7 @@ namespace Weirwood
 		ProductionRule* mRulePtr;
 		//Meta as SequenceHeader
 		std::string mSequenceId;
-		IndexTable mSequenceParams;
+		IndexTable mActiveParams;
 		//Helpers
 		bool ReadLine();
 		bool ReadToken();
@@ -36,10 +36,11 @@ namespace Weirwood
 		//Parsing
 		void ParseLine();
 		void ParseMeta();
+		void ParseParamNames(const std::string& token, IndexTable& out);
 		void ParseProductionRule();
 		void ParseCommand();
 		bool ParseParam(const std::string& token, int& out_pos, std::string& out);
-		void ParseExpression(const std::string& token, Expression* out);
+		void ParseExpression(const std::string& token, Expression* out, bool checkVarNames = true);
 		//Macro (Code-gen)
 		void ReadBlock(int depth);
 		void GenerateRepeat();
@@ -48,7 +49,6 @@ namespace Weirwood
 		void GenerateIf();
 		void GenerateElse();
 		void GenerateMod(char mod);
-		bool mGeneratingCode;
 		Instruction* GenerateCommand(InstructionSet op, int depth);
 		void GenerateCommand(InstructionSet op, const std::string& params, int depth);
 	};

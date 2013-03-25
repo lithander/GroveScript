@@ -21,5 +21,5 @@ rotate -90
 move 1
 
 #rules
-X => X F Y F X + F + Y F X F Y - F - X F Y F X
-Y => Y F X F Y - F - X F Y F X + F + Y F X F Y
+X -> X F Y F X + F + Y F X F Y - F - X F Y F X
+Y -> Y F X F Y - F - X F Y F X + F + Y F X F Y

@@ -31,7 +31,7 @@ void Processor::Reset()
 		mTrash.pop();
 	}
 
-	mParamsPtr = &mNoParams;
+	mParamsPtr = NULL;
 	mTempVar = 0;
 	mTempVarIndices.clear();
 	mValid = true;
@@ -42,9 +42,12 @@ void Processor::Reset()
 	for(std::vector<CommandList>::iterator it = mSequences.Data().begin(); it != mSequences.Data().end(); it++)
 		for(CommandList::iterator it2 = it->begin(); it2 != it->end(); it2++)
 			delete *it2;
-	
+
+	//delete Productions
+	for(Productions::iterator it = mProductions.begin(); it != mProductions.end(); it++)
+		delete *it;
+
 	mProductions.clear();
-	mSymbolIndexTable.clear();
 	mVars.Clear();
 	mSequences.Clear();
 	mStructures.Clear();
@@ -77,7 +80,7 @@ void Processor::Run(const std::string& seqId)
 		for(std::vector<double>::iterator it = mVars.Data().begin(); it != mVars.Data().end(); it++)
 			(*it) = 0;
 
-		ExecuteSequence(mSequences.Retrieve(seqId), mNoParams);
+		ExecuteSequence(mSequences.Retrieve(seqId), Variables());
 		mSproutPtr->Flush();
 	}
 	catch(Error e)
@@ -88,9 +91,13 @@ void Processor::Run(const std::string& seqId)
 
 void Processor::ExecuteSymbols(SymbolList& symbols)
 {
-	for(SymbolList::iterator seqIt = symbols.begin(); seqIt != symbols.end(); seqIt++)
-		if(*seqIt >= 0) //skip non-sequence symbols
-			ExecuteSequence(mSequences.Retrieve(*seqIt), mNoParams);
+	for(SymbolList::iterator it = symbols.begin(); it != symbols.end(); it++)
+	{
+		if(it->Type == Symbol::SEQUENCE)
+			ExecuteSequence(mSequences.Retrieve(it->Index), it->Params);
+		else if(it->Type == Symbol::STRUCTURE)
+			ExecuteSymbols(mStructures.Retrieve(it->Index));
+	}
 }
 
 void Processor::ExecuteSequence(CommandList& seq, Variables& params)
@@ -169,7 +176,7 @@ void Processor::ExecuteCommand(Instruction* pCmd)
 	case OUT_OP:
 		Print(pCmd); break;
 	case SEED_OP:
-		Seed(pCmd->GetToken(0), pCmd->GetToken(1)); break;
+		Seed(pCmd); break;
 	case GROW_OP:
 		Grow(pCmd->GetToken(0), pCmd->GetToken(1)); break;
 	case GATE_OP:
@@ -179,16 +186,34 @@ void Processor::ExecuteCommand(Instruction* pCmd)
 	case REPEAT_OP:
 		Repeat(pCmd->GetBlockDepth()); break;
 	case SRAND_OP:
-		srand((int)pCmd->GetNumber(0)); 
-		rand();
-		break;
+		Shuffle((int)pCmd->GetNumber(0)); break;
 	case EXE_OP:
-		if(pCmd->IsFunction(0))
-			ExecuteWithParams(pCmd);
-		else
-			Execute(pCmd->GetToken(0));
+		Run(pCmd);
 		break;
 	}
+}
+
+void Processor::Shuffle(int seed)
+{
+	srand(seed);
+	rand();
+}
+
+void Processor::Seed(Instruction* pCmd)
+{
+	const std::string& structure = pCmd->GetToken(0);
+	SymbolList& list = mStructures.Retrieve(structure);
+	list.clear();
+	ParseSymbolList(pCmd->GetToken(1), list);
+	pCmd->ResolveParams(1, list);
+}
+
+void Processor::Run(Instruction* pCmd)
+{
+	SymbolList list;
+	ParseSymbolList(pCmd->GetToken(0), list, true);
+	pCmd->ResolveParams(0, list);
+	ExecuteSymbols(list);
 }
 
 void Processor::Gate(bool condition, int depth)
@@ -220,18 +245,11 @@ void Processor::Repeat(int depth)
 		mNextCommand--;
 }
 
-void Processor::Seed(const std::string& structure, const std::string& axiom)
-{
-	SymbolList& list = mStructures.Retrieve(structure);
-	list.clear();
-	ParseSymbolList(axiom, list);
-}
-
 void Processor::Grow(const std::string& structure, const std::string& ruleSet)
 {
 	//activate rules in ruleset
 	for(Productions::iterator ruleIt = mProductions.begin(); ruleIt != mProductions.end(); ruleIt++)
-		ruleIt->Active = ruleIt->HasTag(ruleSet);
+		(*ruleIt)->Active = (*ruleIt)->HasTag(ruleSet);
 
 	//apply active rules on structure
 	SymbolList& symbols = mStructures.Retrieve(structure);
@@ -242,39 +260,18 @@ void Processor::Grow(const std::string& structure, const std::string& ruleSet)
 		bool match = false;
 		for(Productions::iterator ruleIt = mProductions.begin(); ruleIt != mProductions.end(); ruleIt++)
 		{
-			match = ruleIt->Active && ruleIt->Match(symbols, it);
+			ProductionRule* pRule = *ruleIt;
+			match = pRule->Active && pRule->Match(symbols, it);
 			if(match)
 			{
-				if(!ruleIt->Commands().empty())
-					ExecuteSequence(ruleIt->Commands(), mNoParams);
+				if(!pRule->Commands().empty())
+					ExecuteSequence(pRule->Commands(), pRule->Params());
 				break;
 			}
 		}
 		if(!match)
 			it++;
 	}
-}
-
-void Processor::ExecuteWithParams(Instruction* pCmd)
-{
-	std::string name = pCmd->GetToken(0);
-	name = name.substr(0, name.find('('));
-	Variables params;
-	pCmd->GetParams(0, params);
-	if(mSequences.Contains(name))
-		ExecuteSequence(mSequences.Retrieve(name), params);
-	else
-		throw Error("No Sequence '"+name+"' is defined!");
-}
-
-void Processor::Execute(const std::string& name)
-{
-	if(mSequences.Contains(name))
-		ExecuteSequence(mSequences.Retrieve(name), mNoParams);
-	else if(mStructures.Contains(name))
-		ExecuteSymbols(mStructures.Retrieve(name));
-	else
-		throw Error("Neither Sequence nor Structure '"+name+"' is defined!");
 }
 
 void Processor::PushState(const std::string& stackId)
@@ -313,9 +310,9 @@ void Processor::Print(Instruction* pCmd)
 		{
 			if(pCmd->IsExpression(i))
 				if(pCmd->IsBoolean(i))
-					ss << " = " << (pCmd->GetBool(i) ? "true" : "false");
+					ss << " = " << (pCmd->GetBool(i) ? "true " : "false ");
 				else
-					ss << " = " << pCmd->GetNumber(i);
+					ss << " = " << pCmd->GetNumber(i) << " ";
 		}
 		catch(Error e)
 		{
@@ -326,60 +323,53 @@ void Processor::Print(Instruction* pCmd)
 	mLog.push_back(ss.str());
 }
 
-void Processor::Log(const std::string& msg)
-{
-	mLog.push_back(msg);
-}
-
-void Processor::Abort(const std::string& msg)
-{
-	mLog.push_back("ERROR: "+msg);
-	mValid = false;
-}
-
-void Processor::ParseSymbolList(const std::string& line, SymbolList& out_symbols)
-{
-	//TODO: migrate all parsing into script reader?
-	int pos = 0;
-	for(;;)
+void Processor::ParseSymbolList(const std::string& line, SymbolList& out_symbols, bool searchStructures)
+{	
+	//TODO: migrate all parsing into script reader? 
+	//but when symbol lists can't contain structures how will structures be executed?
+	std::string symbolName;
+	int pos = -1;
+	int last = line.size()-1;
+	while(pos < last)
 	{
-		int nextPos = line.find(' ', pos);
-		const std::string s = line.substr(pos, nextPos-pos);
-		if(s != "")
-			out_symbols.push_back(GetSymbolIndex(s));
-		
-		if(nextPos == line.npos)
-			return;
-
-		pos = nextPos+1;
-	}
-}
-
-int Processor::GetSymbolIndex(const std::string& name)
-{
-	IndexTable::iterator it = mSymbolIndexTable.find(name);
-	if(it != mSymbolIndexTable.end())
-		return it->second;
-	else
-	{
-		if(mSequences.Contains(name))
+		symbolName.clear();
+		//skip leading whitespaces
+		while(pos < last && ::isspace(line.at(pos+1)))
+			pos++;
+		//split at each occurance of ' ' outside of parantheses
+		int parenDepth = 0;
+		while(++pos <= last)
 		{
-			//Symbol is a Sequence: return sequence index and cache it for next query
-			int index = mSequences.IndexOf(name);
-			mSymbolIndexTable[name] = index;
-			return index;
+			char c = line.at(pos);
+			if(c == ' ' && parenDepth == 0)
+				break; //split here
+			if(c == '(')
+				parenDepth++;
+			else if(c == ')')
+				parenDepth--;
+			else if(parenDepth == 0)
+				symbolName += c;
 		}
-		//Symbol is new - return unoccupied negative number and cache for next query
-		int index = -(1+(int)mSymbolIndexTable.size());
-		mSymbolIndexTable[name] = index; //eg last index after resize
-		return index;
+		Symbol symbol;
+		if(searchStructures && mStructures.Contains(symbolName))
+		{
+			symbol.Type = Symbol::STRUCTURE;
+			symbol.Index = mStructures.IndexOf(symbolName);
+		}
+		else
+		{
+			symbol.Type = Symbol::SEQUENCE;
+			symbol.Index = mSequences.IndexOf(symbolName);
+		}
+		out_symbols.push_back(symbol);
 	}
 }
 
 ProductionRule* Processor::AppendProduction()
 {
-	mProductions.resize(mProductions.size()+1);
-	return &mProductions.back();
+	ProductionRule* pRule = new ProductionRule(this);
+	mProductions.push_back(pRule);
+	return pRule;
 }
 
 Instruction* Processor::AppendCommand(const std::string& seqId, InstructionSet type, int blockDepth)
@@ -402,10 +392,40 @@ void Processor::ReleaseTempVar()
 {
 	mTempVar--;
 }
+
+int Processor::GetVarIndex(const std::string& varName) 
+{ 
+	return mVars.IndexOf(varName); 
+}
+
+//IExecutionContext
+double Processor::GetVar(int i) 
+{ 
+	return mVars.Retrieve(i); 
+}
+
+double Processor::GetParam(int i) 
+{ 
+	if(mParamsPtr->size() > i)
+		return mParamsPtr->at(i); 
+	else
+		return 0.0;
+}
 		
 double Processor::GetTime()
 {
 	clock_t ticks = clock();
 	return (double)ticks / CLOCKS_PER_SEC;
+}
+
+void Processor::Log(const std::string& msg)
+{
+	mLog.push_back(msg);
+}
+
+void Processor::Abort(const std::string& msg)
+{
+	mLog.push_back("ERROR: "+msg);
+	mValid = false;
 }
 

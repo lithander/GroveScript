@@ -21,4 +21,4 @@ rotate -88
 move 1
 
 #rules
-X => - F F + F F + F + F - F - F F X
+X -> - F F + F F + F + F - F - F F X

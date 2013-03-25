@@ -21,4 +21,4 @@ rotate -72
 move 1
 
 #rules
-F => F - F + + F + F - F - F
+F -> F - F + + F + F - F - F

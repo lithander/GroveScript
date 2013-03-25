@@ -21,4 +21,4 @@ rotate -90
 move 0.5
 
 #rules
-F => F F + F + F + F + F F
+F -> F F + F + F + F + F F

@@ -41,10 +41,9 @@ namespace Weirwood
 		const std::string& GetToken(int index, const std::string& defaultToken) const;
 		double GetNumber(int index) const;
 		double GetNumber(int index, double defaultValue) const;
-		void GetParams(int index, Variables& out_params) const;
+		void ResolveParams(int index, SymbolList& out_symbols) const;
 		bool GetBool(int index) const;
 		bool IsBoolean(int index) const;
-		bool IsFunction(int index) const;
 		bool IsExpression(int index) const;
 	protected:
 		int mLineNumber;
@@ -113,7 +112,7 @@ namespace Weirwood
 	}
 
 	template <typename T>
-	void Command<T>::GetParams(int index, Variables& out_params) const
+	void Command<T>::ResolveParams(int index, SymbolList& out_symbols) const
 	{
 		if(index >= (int)mExpressions.size())
 		{
@@ -121,7 +120,7 @@ namespace Weirwood
 			ss << "Line " << mLineNumber << ": Not enough parameters!";
 			throw Error(ss.str());
 		}
-		mExpressions[index].AsParams(out_params);
+		mExpressions[index].ResolveParams(out_symbols);
 	}
 
 	template <typename T>
@@ -141,15 +140,5 @@ namespace Weirwood
 		else
 			return false;
 	}
-
-	template <typename T>
-	bool Command<T>::IsFunction(int index) const
-	{
-		if(index < (int)mExpressions.size())
-			return mExpressions[index].IsFunction();
-		else
-			return false;
-	}
-
 }
 

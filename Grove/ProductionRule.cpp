@@ -14,9 +14,10 @@ void Weirwood::swap(ProductionRule& first, ProductionRule& second)
 	swap(first.mPredecessor, second.mPredecessor);
 	swap(first.mSuccessor, second.mSuccessor);
 	swap(first.mCommands, second.mCommands);
+	swap(first.mParamGenerator, second.mParamGenerator); 
 }
 
-ProductionRule::ProductionRule() : Active(true), mCondition(NULL) 
+ProductionRule::ProductionRule(IExpressionContext* pContext) : Active(true), mContextPtr(pContext), mCondition(this), mParamGenerator(this)
 {
 };
 
@@ -30,10 +31,13 @@ ProductionRule::~ProductionRule(void)
 ProductionRule::ProductionRule(const ProductionRule& other)
 {
 	Active = other.Active;
+	mParams = other.mParams;
 	mCondition = other.mCondition;
+	mParamGenerator = other.mParamGenerator;
 	mTags = other.mTags;
 	mPredecessor = other.mPredecessor;
 	mSuccessor = other.mSuccessor;
+	mParamGenerator = other.mParamGenerator;
 	for(CommandList::const_iterator it = other.mCommands.begin(); it != other.mCommands.end(); it++)
 		mCommands.push_back(new Instruction(**it));
 	mCommands.clear();
@@ -44,11 +48,6 @@ ProductionRule& ProductionRule::operator=(ProductionRule other)
 	//COPY&SWAP IDIOM
 	swap(*this, other);
     return *this;
-}
-
-void ProductionRule::SetCondition(const Expression& exp)
-{
-	mCondition = exp;
 }
 
 void ProductionRule::AddTag(const std::string& tag)
@@ -71,21 +70,57 @@ bool ProductionRule::HasTag(const std::string& tag)
 
 bool ProductionRule::Match(SymbolList& symbols, SymbolList::iterator& current)
 {
-	if(!mCondition.IsEmpty() && mCondition.AsBool() == false)
-		return false;
-
 	SymbolList::const_iterator symIt = current;
+	mParams.clear();
 	//verify production pattern matches
 	for(SymbolList::const_iterator it = mPredecessor.begin(); it != mPredecessor.end(); it++, symIt++)
 	{
-		if(symIt == symbols.end() || (*it) != (*symIt))
+		if(symIt == symbols.end() || (symIt->Type != symIt->Type) || (it->Index != symIt->Index)) //TODO compare params too?
 			return false;
-	}	
-	//production pattern matches: 
+		//gather param values to be used by condition & param-generation & processor when executing attached code
+		mParams.insert(mParams.end(), symIt->Params.begin(), symIt->Params.end());
+	}
+	
+	//verify condition is met
+	if(!mCondition.IsEmpty() && mCondition.AsBool() == false)
+		return false;
 
-	//1.) remove predecessor
+	//generate successors params
+	if(!mParamGenerator.IsEmpty())
+		mParamGenerator.ResolveParams(mSuccessor);
+
+	//replace predecessor with successor
 	current = symbols.erase(current, symIt); 
-	//2.) add successor
 	symbols.insert(current, mSuccessor.begin(), mSuccessor.end());
 	return true;
+}
+
+
+//IExecutionContext
+double ProductionRule::GetVar(int i) 
+{ 
+	return mContextPtr->GetVar(i);
+}
+
+double ProductionRule::GetParam(int i) 
+{ 
+	if(mParams.size() > i)
+		return mParams.at(i); 
+	else
+		return 0.0;
+}
+		
+double ProductionRule::GetTime()
+{
+	return mContextPtr->GetTime();
+}
+
+void ProductionRule::Log(const std::string& msg)
+{
+	return mContextPtr->Log(msg);
+}
+
+void ProductionRule::Abort(const std::string& msg)
+{
+	return mContextPtr->Abort(msg);
 }
