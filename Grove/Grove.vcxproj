@@ -96,7 +96,6 @@
     <ClInclude Include="Weirwood.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Command.cpp" />
     <ClCompile Include="Expression.cpp" />
     <ClCompile Include="GroveApp.cpp" />
     <ClCompile Include="Keywords.cpp" />

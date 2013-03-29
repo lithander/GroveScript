@@ -1,6 +1,14 @@
 #include "Keywords.h"
+#include <cctype>
 
 using namespace Weirwood;
+
+std::string to_upper_copy(const std::string& token)
+{
+	std::string result = token;
+	std::transform(result.begin(), result.end(), result.begin(), std::ptr_fun(toupper));
+	return result;
+}
 
 Keywords* Keywords::mInstance = NULL;
 
@@ -19,7 +27,7 @@ InstructionSet Keywords::Operation(const std::string& token)
 
 InstructionSet Keywords::GetOperation(const std::string& token)
 {
-	std::string op = boost::to_upper_copy(token);
+	std::string op = to_upper_copy(token);
 	std::map<std::string, InstructionSet>::iterator it = mOperations.find(op);
 	if(it != mOperations.end())
 		return it->second;
@@ -34,7 +42,7 @@ Macros Keywords::Macro(const std::string& token)
 
 Macros Keywords::GetMacro(const std::string& token)
 {
-	std::string op = boost::to_upper_copy(token);
+	std::string op = to_upper_copy(token);
 	std::map<std::string, Macros>::iterator it = mMacros.find(op);
 	if(it != mMacros.end())
 		return it->second;
@@ -49,7 +57,7 @@ Expression::FunctionSet Keywords::Function(const std::string& token)
 
 Expression::FunctionSet Keywords::GetFunction(const std::string& token)
 {
-	std::string fn = boost::to_upper_copy(token);
+	std::string fn = to_upper_copy(token);
 	std::map<std::string, Expression::FunctionSet>::iterator it = mFunctions.find(fn);
 	if(it != mFunctions.end())
 		return it->second;
@@ -64,7 +72,7 @@ Expression::TokenType Keywords::Token(const std::string& token)
 
 Expression::TokenType Keywords::GetToken(const std::string& token)
 {
-	std::string fn = boost::to_upper_copy(token);
+	std::string fn = to_upper_copy(token);
 	std::map<std::string, Expression::TokenType>::iterator it = mTokens.find(fn);
 	if(it != mTokens.end())
 		return it->second;

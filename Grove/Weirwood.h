@@ -8,7 +8,6 @@
 #include <istream>
 #include <algorithm>
 #include <iterator>
-#include "boost\algorithm\string.hpp"
 
 namespace Weirwood 
 {
@@ -81,7 +80,7 @@ namespace Weirwood
 	{
 		enum SymbolType
 		{
-			VOID,
+			TEMPORARY,
 			STRUCTURE,
 			SEQUENCE
 		};

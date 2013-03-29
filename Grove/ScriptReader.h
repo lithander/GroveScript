@@ -33,6 +33,7 @@ namespace Weirwood
 		bool ReadParam();
 		std::string mStoredLine;
 		void RestoreLine() { mStoredLine = mLine; };
+		std::string RemoveContextMarkers(std::string line, int& out_leftContext, int& out_rightContext);
 		//Parsing
 		void ParseLine();
 		void ParseMeta();

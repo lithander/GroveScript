@@ -59,8 +59,8 @@ Typically you'd define a simple string to start with (called axiom) and then app
 A production can define multiple rules.
 
 	#rules
-	A =>B - A - B
-	B =>A + B + A
+	A -> B - A - B
+	B -> A + B + A
 
 Scanning the input string left to right, token for token, all rules are checked for compliance, top to bottom. The first rule where the input pattern fits is chosen.
 
@@ -90,7 +90,7 @@ Foo : i = 1 -> Green Base
 Foo -> Blue Base
 	set i, 0
 
-When we initialize i with 0 the first time #ResolveFoo finds a Foo the first rule qualies. This will replace "Foo" with "Red Base". But it also raises i. So the next time the 2nd rule qualifies (it's condition requires i to be 1) raising i again to 2. Neither the first nor the second rule accept i anymore, so when the next "Foo" is encountered the third rule applys, setting i back to 0. So the three rules will be chosen cyclic, one after another.
+When we initialize i with 0 the first time #ResolveFoo finds a Foo the first rule qualifies. This will replace "Foo" with "Red Base". But it also raises i. So the next time the 2nd rule qualifies (it's condition requires i to be 1) raising i again to 2. Neither the first nor the second rule accept i anymore, so when the next "Foo" is encountered the third rule applys, setting i back to 0. So the three rules will be chosen cyclic, one after another.
 
 
 

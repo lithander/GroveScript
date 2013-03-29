@@ -134,29 +134,81 @@ void ScriptReader::ParseMeta()
 	mMeta = mLine.substr(1);
 	//always treat meta as sequence without checking
 	ParseParamNames(mMeta, mActiveParams);
-	int cEndOfId = mMeta.find('(');
-	mSequenceId = mMeta.substr(0, cEndOfId);
+	int endOfId = mMeta.find('(');
+	mSequenceId = mMeta.substr(0, endOfId);
 }
 
 void ScriptReader::ParseParamNames(const std::string& token, IndexTable& out)
 {
 	out.clear();
 	int offset = 0;
-	int cBegin = token.find('(');
-	int cEnd = token.find(')');
-	while(cBegin != token.npos && cEnd != token.npos)
+	int begin = token.find('(');
+	int end = token.find(')');
+	while(begin != token.npos && end != token.npos)
 	{
-		std::string params = token.substr(cBegin+1, cEnd-cBegin-1);
+		std::string params = token.substr(begin+1, end-begin-1);
 		int pos = -1;
 		int i = 0;
 		std::string param;
 		while(ParseParam(params, pos, param))
 			out[param] = i++;
 
-		offset = cEnd;
-		cBegin = token.find('(', offset+1);
-		cEnd = token.find(')', offset+1);
+		offset = end;
+		begin = token.find('(', offset+1);
+		end = token.find(')', offset+1);
 	}	
+}
+
+std::string ScriptReader::RemoveContextMarkers(std::string line, int& out_leftContext, int& out_rightContext)
+{
+	int pos = -1;
+	int last = line.size()-1;
+	int symbolCount = 0;
+	bool skipSpace = true;
+	//skip leading whitespaces
+	while(pos < last && ::isspace(line.at(pos+1)))
+		pos++;
+	
+	//count at each occurance of ' ' outside of parantheses
+	int parenDepth = 0;
+	while(++pos <= last)
+	{
+		char c = line.at(pos); 
+		switch(c)
+		{
+		case ' ':
+			if(parenDepth == 0 && !skipSpace) 
+				symbolCount++;
+			break;
+		case '(':
+			parenDepth++;
+			break;
+		case ')':
+			parenDepth--;
+			break;
+		case '<':
+			out_leftContext = symbolCount;
+			skipSpace = true;
+			break;
+		case '>':
+			out_rightContext = symbolCount;
+			skipSpace = true;
+			break;
+		default:
+			skipSpace = false;
+		}
+	}
+	//if the next space would inc symbolCount end of line should do the same
+	if(!skipSpace)
+		symbolCount++;
+
+	//reverse count direction
+	if(out_rightContext > 0)
+		out_rightContext = symbolCount - out_rightContext;
+	//remove markers
+	line.erase(std::remove(line.begin(), line.end(),'<'), line.end());
+	line.erase(std::remove(line.begin(), line.end(),'>'), line.end());
+	return line;
 }
 
 void ScriptReader::ParseProductionRule()
@@ -170,32 +222,36 @@ void ScriptReader::ParseProductionRule()
 
 	//split the line
 	std::string predecessor, successor, condition;
-	int cBegin = mLine.find(':');
-	int cEnd = mLine.find("->");
-	if(cBegin != mLine.npos)
+	int begin = mLine.find(':');
+	int end = mLine.find("->");
+	if(begin != mLine.npos)
 	{
-		condition = mLine.substr(cBegin+1, cEnd-cBegin-2);
-		predecessor = mLine.substr(0, cBegin);
-		successor = mLine.substr(cEnd+2);
+		condition = mLine.substr(begin+1, end-begin-2);
+		predecessor = mLine.substr(0, begin);
+		successor = mLine.substr(end+2);
 	}
 	else
 	{
-		predecessor = mLine.substr(0, cEnd-1);
-		successor = mLine.substr(cEnd+2);
+		predecessor = mLine.substr(0, end-1);
+		successor = mLine.substr(end+2);
 	}
-
+	//split the predecessor (extract context)
+	int leftContext = 0, rightContext = 0;
+	predecessor = RemoveContextMarkers(predecessor, leftContext, rightContext);
+	mRulePtr->SetContext(leftContext, rightContext);
+	
 	mProcPtr->ParseSymbolList(predecessor, mRulePtr->Predecessor());
 	mProcPtr->ParseSymbolList(successor, mRulePtr->Successor());
 	//extract param names from predecessor (overriding mActiveParams and not restoring)
 	ParseParamNames(predecessor, mActiveParams);
 	//init param generating expression from successor
 	if(!mActiveParams.empty())
-		ParseExpression(successor, &mRulePtr->ParamGenerator());
+		ParseExpression(successor, &mRulePtr->ParamGenerator(), false);
 	//init condition
 	if(!condition.empty())
 	{
 		mRulePtr->Condition().SetDebugInfo(mLineNumber);
-		ParseExpression(condition, &mRulePtr->Condition());
+		ParseExpression(condition, &mRulePtr->Condition(), false);
 	}
 	//parse attached code
 	int depth = mBlockDepth+1;
@@ -473,7 +529,7 @@ void ScriptReader::GenerateCommand(InstructionSet op, const std::string& params,
 	{
 		Expression exp(mProcPtr);
 		ParseExpression(param, &exp, false);
-		pCmd->PushParam(param, exp); //exp will be copied. It's 64 bytes so it should be okay. (std::string is 32byte in comparision)
+		pCmd->PushParam(param, exp); //exp will be copied. It's ~60 bytes so it should be okay. (std::string is 32byte in comparision)
 	}
 }
 

@@ -17,7 +17,7 @@ void Weirwood::swap(ProductionRule& first, ProductionRule& second)
 	swap(first.mParamGenerator, second.mParamGenerator); 
 }
 
-ProductionRule::ProductionRule(IExpressionContext* pContext) : Active(true), mContextPtr(pContext), mCondition(this), mParamGenerator(this)
+ProductionRule::ProductionRule(IExpressionContext* pContext) : Active(true), mContextPtr(pContext), mCondition(this), mParamGenerator(this), mLeftContext(0), mRightContext(0)
 {
 };
 
@@ -50,6 +50,12 @@ ProductionRule& ProductionRule::operator=(ProductionRule other)
     return *this;
 }
 
+void ProductionRule::SetContext(int left, int right)
+{
+	mLeftContext = left;
+	mRightContext = right;
+}
+
 void ProductionRule::AddTag(const std::string& tag)
 {
 	if(!HasTag(tag))
@@ -71,8 +77,15 @@ bool ProductionRule::HasTag(const std::string& tag)
 bool ProductionRule::Match(SymbolList& symbols, SymbolList::iterator& current)
 {
 	SymbolList::const_iterator symIt = current;
+	//step back to include left context
+	for(int i = mLeftContext; i > 0; i--)
+		if(symIt == symbols.begin())
+			return false;
+		else
+			symIt--;
+
 	mParams.clear();
-	//verify production pattern matches
+	//verify production pattern matches and gather param values
 	for(SymbolList::const_iterator it = mPredecessor.begin(); it != mPredecessor.end(); it++, symIt++)
 	{
 		if(symIt == symbols.end() || (symIt->Type != symIt->Type) || (it->Index != symIt->Index)) //TODO compare params too?
@@ -88,6 +101,10 @@ bool ProductionRule::Match(SymbolList& symbols, SymbolList::iterator& current)
 	//generate successors params
 	if(!mParamGenerator.IsEmpty())
 		mParamGenerator.ResolveParams(mSuccessor);
+
+	//step back so right context doesn't get erased
+	for(int i = mRightContext; i > 0; i--)
+		symIt--;
 
 	//replace predecessor with successor
 	current = symbols.erase(current, symIt); 

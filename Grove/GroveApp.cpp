@@ -169,12 +169,6 @@ void Grove::draw()
 				mTargetFbo.unbindTexture();
 				mFinalBlurFbo.unbindTexture();
 			mCombineShader.unbind();		
-			/*
-			gl::draw(mTargetFbo.getTexture(), mTargetFbo.getBounds(), getWindowBounds());
-			gl::enableAdditiveBlending();
-			gl::draw(mFinalBlurFbo.getTexture(), mFinalBlurFbo.getBounds(), getWindowBounds());
-			gl::disableAlphaBlending();
-			*/
 			gl::popModelView();
 		}
 

@@ -14,6 +14,7 @@ namespace Weirwood
 		~ProductionRule(void);
 		void AddTag(const std::string& tag);
 		bool HasTag(const std::string& tag);
+		void SetContext(int left, int right);
 		Instruction* AppendCommand(InstructionSet type, int blockDepth);
 		inline CommandList& Commands() { return mCommands; }
 		inline SymbolList& Predecessor() { return mPredecessor; }
@@ -32,6 +33,8 @@ namespace Weirwood
 		bool Active;
 	private:
 		IExpressionContext* mContextPtr;
+		int mLeftContext;
+		int mRightContext;
 		Variables mParams; //predeccessor names/defines params. usable in condition and form successor param generation
 		Expression mCondition;
 		Expression mParamGenerator;
