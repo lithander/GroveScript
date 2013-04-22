@@ -12,6 +12,9 @@ namespace Weirwood
 		static Macros Macro(const std::string& token);
 		static Expression::FunctionSet Function(const std::string& token);
 		static Expression::TokenType Token(const std::string& token);
+		static double Constant(const std::string& token);
+		static double Constant(const std::string& token, bool& defined);
+		static void Define(const std::string& token, double value);
 	private:
 		static Keywords* mInstance;
 		static Keywords* Instance();
@@ -22,10 +25,13 @@ namespace Weirwood
 		Macros GetMacro(const std::string& token);
 		Expression::FunctionSet GetFunction(const std::string& token);
 		Expression::TokenType GetToken(const std::string& token);
+		double GetConstant(const std::string& token, bool& defined);
+		void SetConstant(const std::string& token, double value);
 
 		std::map<std::string, InstructionSet> mOperations;
 		std::map<std::string, Expression::FunctionSet> mFunctions;
 		std::map<std::string, Expression::TokenType> mTokens;
 		std::map<std::string, Macros> mMacros;
+		std::map<std::string, double> mConstants;
 	};
 }

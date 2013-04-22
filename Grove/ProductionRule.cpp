@@ -4,6 +4,44 @@
 
 using namespace Weirwood;
 
+
+//IExecutionContext
+ProxyExpressionContext::ProxyExpressionContext(IExpressionContext* pContext) : mContextPtr(pContext)
+{
+
+}
+
+double ProxyExpressionContext::GetVar(int i) 
+{ 
+	return mContextPtr->GetVar(i);
+}
+		
+double ProxyExpressionContext::GetTime()
+{
+	return mContextPtr->GetTime();
+}
+
+double ProxyExpressionContext::GetRandom(double min, double max)
+{
+	return mContextPtr->GetRandom(min, max);
+}
+
+void ProxyExpressionContext::Log(const std::string& msg)
+{
+	return mContextPtr->Log(msg);
+}
+
+void ProxyExpressionContext::Abort(const std::string& msg)
+{
+	return mContextPtr->Abort(msg);
+}
+
+double ProxyExpressionContext::GetParam(int i) 
+{ 
+	return mContextPtr->GetParam(i);
+}
+
+
 void Weirwood::swap(ProductionRule& first, ProductionRule& second)
 {
 	using std::swap; 
@@ -17,7 +55,7 @@ void Weirwood::swap(ProductionRule& first, ProductionRule& second)
 	swap(first.mParamGenerator, second.mParamGenerator); 
 }
 
-ProductionRule::ProductionRule(IExpressionContext* pContext) : Active(true), mContextPtr(pContext), mCondition(this), mParamGenerator(this), mLeftContext(0), mRightContext(0)
+ProductionRule::ProductionRule(IExpressionContext* pContext) : ProxyExpressionContext(pContext), Active(true), mCondition(this), mParamGenerator(this), mLeftContext(0), mRightContext(0)
 {
 };
 
@@ -28,7 +66,7 @@ ProductionRule::~ProductionRule(void)
 	mCommands.clear();
 }
 
-ProductionRule::ProductionRule(const ProductionRule& other)
+ProductionRule::ProductionRule(const ProductionRule& other) : ProxyExpressionContext(other.mContextPtr)
 {
 	Active = other.Active;
 	mParams = other.mParams;
@@ -112,32 +150,10 @@ bool ProductionRule::Match(SymbolList& symbols, SymbolList::iterator& current)
 	return true;
 }
 
-
-//IExecutionContext
-double ProductionRule::GetVar(int i) 
-{ 
-	return mContextPtr->GetVar(i);
-}
-
 double ProductionRule::GetParam(int i) 
 { 
 	if(mParams.size() > i)
 		return mParams.at(i); 
 	else
 		return 0.0;
-}
-		
-double ProductionRule::GetTime()
-{
-	return mContextPtr->GetTime();
-}
-
-void ProductionRule::Log(const std::string& msg)
-{
-	return mContextPtr->Log(msg);
-}
-
-void ProductionRule::Abort(const std::string& msg)
-{
-	return mContextPtr->Abort(msg);
 }

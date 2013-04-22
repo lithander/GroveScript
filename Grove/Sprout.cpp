@@ -67,17 +67,23 @@ void Sprout::SetWidth(float width)
 	glLineWidth(width);
 }
 
-void Sprout::Curve(float rotationDegree, float radiusUnits)
+void Sprout::Move(float units, float rotationDegree)
 {
+	if(rotationDegree == 0)
+		Move(units);
+
 	Render(true);
-	//negative radius isn't allowed but sign of degree is important
+	//moving X units on a circle - what's the radius so the central angle of the circular sector is as requested?
+	double rBase = 360/rotationDegree*units;
+	double radiusUnits = rBase/6.283;
+	//negative radius isn't allowed but sign of angle is important
 	int sign = rotationDegree < 0 ? -1 : 1;
 	//vector from point of rotation to current position
 	Vec2f vR = sign * abs(radiusUnits) * Vec2f(mDirection.y, -mDirection.x);
 	//point of rotation
 	Vec2f pR = mPosition - vR;
 	//degrees per step so it looks smooth
-	float stepAngle = (2.0/mUnitLength*360)/(6.283*abs(radiusUnits)); //2 pixel steps on the circumference
+	float stepAngle = (2.0/mUnitLength*360)/abs(rBase); //2 pixel steps on the circumference
 	//do as many steps as needed to reach target angle
 	float angle = 0;
 	while(angle < abs(rotationDegree))

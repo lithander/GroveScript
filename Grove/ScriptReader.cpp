@@ -245,13 +245,12 @@ void ScriptReader::ParseProductionRule()
 	//extract param names from predecessor (overriding mActiveParams and not restoring)
 	ParseParamNames(predecessor, mActiveParams);
 	//init param generating expression from successor
-	if(!mActiveParams.empty())
-		ParseExpression(successor, &mRulePtr->ParamGenerator(), false);
+	ParseExpression(successor, &mRulePtr->ParamGenerator());
 	//init condition
 	if(!condition.empty())
 	{
 		mRulePtr->Condition().SetDebugInfo(mLineNumber);
-		ParseExpression(condition, &mRulePtr->Condition(), false);
+		ParseExpression(condition, &mRulePtr->Condition());
 	}
 	//parse attached code
 	int depth = mBlockDepth+1;
@@ -331,7 +330,7 @@ bool ScriptReader::ParseParam(const std::string& token, int& inout_pos, std::str
 	return out.length() > 0;
 }
 
-void ScriptReader::ParseExpression(const std::string& token, Expression* out, bool checkVarNames)
+void ScriptReader::ParseExpression(const std::string& token, Expression* out)
 {
 	//detect string-literal
 	if(token.find('\'') != token.npos)
@@ -403,12 +402,6 @@ void ScriptReader::ParseExpression(const std::string& token, Expression* out, bo
 				break;
 			//string token (function or variable)
 			default:
-				if (checkVarNames && !isalpha(ch)) //tolerate prefixed variables for generated code
-				{
-					std::stringstream ss;
-					ss << "Symbol '" << ch << "' in Line " << mLineNumber << " is not understood!";
-					throw Error(ss.str());
-				}
 				//read all alphanumeric characters
 				std::string token;
 				token+=ch;
@@ -417,11 +410,16 @@ void ScriptReader::ParseExpression(const std::string& token, Expression* out, bo
 				//if ch is '(' token specifies a function
 				if(ch == '(')
 					out->PushFunction(Keywords::Function(token)); //the LP isn't needed in the token chain
-				else //token specifies a variable
+				else //token is a variable, const, param or string literal
 				{
+					bool isConst = false;
+					double constValue = Keywords::Constant(token, isConst);
 					Expression::TokenType tkn = Keywords::Token(token);
+					//what is it?
 					if(tkn != Expression::END)
 						out->PushToken(tkn);
+					else if(isConst)
+						out->PushNumber(constValue);
 					else if(mActiveParams.find(token) != mActiveParams.end())
 						out->PushParam(mActiveParams[token]);
 					else
@@ -528,7 +526,7 @@ void ScriptReader::GenerateCommand(InstructionSet op, const std::string& params,
 	while(ParseParam(params, pos, param))
 	{
 		Expression exp(mProcPtr);
-		ParseExpression(param, &exp, false);
+		ParseExpression(param, &exp);
 		pCmd->PushParam(param, exp); //exp will be copied. It's ~60 bytes so it should be okay. (std::string is 32byte in comparision)
 	}
 }

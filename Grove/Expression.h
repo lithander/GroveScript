@@ -9,7 +9,8 @@ namespace Weirwood
 		virtual double GetVar(int index) = NULL;
 		virtual double GetParam(int index) = NULL;
 		virtual double GetTime() = NULL;
-		//TODO: little messy to handle log's that way. singleton? exeptions?
+		virtual double GetRandom(double min, double max) = NULL;
+		//TODO: little messy to handle log's that way. singleton? exceptions?
 		virtual void Log(const std::string& msg) = NULL;
 		virtual void Abort(const std::string& msg) = NULL;
 	};

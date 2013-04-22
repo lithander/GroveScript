@@ -2,6 +2,7 @@
 #include "GroveApp.h"
 #include "ScriptReader.h"
 #include "Sprout.h"
+#include "Keywords.h"
 #include "Processor.h"
 
 #include <sys/types.h>
@@ -78,16 +79,23 @@ void Grove::createShader()
 
 void Grove::setup()
 {
-	Vec2i size = getWindowSize();
-	createFBOs(size);
 	createShader();
 	//AllocConsole();
 	//freopen("CONOUT$", "wb", stdout); 
 	mFont = Font("Lucida Console", 20);
-	mSproutPtr = new Sprout(size / 2, 10.0f);
+	mSproutPtr = new Sprout(Vec2f::zero(), 10.0f);
 	mProcessorPtr = new Processor(mSproutPtr);
+	setCanvasSize(getWindowSize());
 	if(getArgs().size() > 1)
 		loadScriptFile(getArgs()[1]);
+}
+
+void Grove::setCanvasSize(Vec2i size)
+{
+	mSproutPtr->SetOrigin(size / 2);
+	Keywords::Define("_width", size.x);
+	Keywords::Define("_height", size.y);
+	createFBOs(size);
 }
 
 void Grove::keyDown( KeyEvent event )
@@ -108,9 +116,9 @@ void Grove::keyDown( KeyEvent event )
 void Grove::toggleFullscreen()
 {
 	setFullScreen( !isFullScreen() );
-	Vec2i size = getWindowSize();
-	mSproutPtr->SetOrigin(size / 2);
-	createFBOs(size);
+	setCanvasSize( getWindowSize() );
+	if(!mScriptPath.empty())
+		loadScriptFile(mScriptPath);
 }
 
 void Grove::update() 

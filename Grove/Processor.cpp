@@ -8,7 +8,7 @@
 
 using namespace Weirwood;
 
-Processor::Processor(Sprout* sproutPtr) : mTempVar(0), mParamsPtr(NULL)
+Processor::Processor(Sprout* sproutPtr) : mTempVar(0), mParamsPtr(NULL), mNextRnd(1)
 {
 	mSproutPtr = sproutPtr;
 	mProductions.reserve(20);
@@ -31,6 +31,7 @@ void Processor::Reset()
 		mTrash.pop();
 	}
 
+	mNextRnd = 1;
 	mParamsPtr = NULL;
 	mTempVar = 0;
 	mTempVarIndices.clear();
@@ -148,9 +149,11 @@ void Processor::ExecuteCommand(Instruction* pCmd)
 	switch(op)
 	{
 	case MOVE_OP:
-		mSproutPtr->Move((float)pCmd->GetNumber(0)); break;
-	case CURVE_OP:
-		mSproutPtr->Curve((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1)); break;
+		if(pCmd->HasToken(1))
+			mSproutPtr->Move((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1)); 
+		else
+			mSproutPtr->Move((float)pCmd->GetNumber(0)); 
+		break;
 	case POSITION_OP:
 		mSproutPtr->SetPosition((float)pCmd->GetNumber(0), (float)pCmd->GetNumber(1)); break;
 	case ROTATE_OP:
@@ -195,8 +198,7 @@ void Processor::ExecuteCommand(Instruction* pCmd)
 
 void Processor::Shuffle(int seed)
 {
-	srand(seed);
-	rand();
+	mNextRnd = seed;
 }
 
 void Processor::Seed(Instruction* pCmd)
@@ -284,6 +286,7 @@ void Processor::PushState(const std::string& stackId)
 		pState = mTrash.top();
 		mTrash.pop();
 	}
+	pState->NextRnd = mNextRnd;
 	pState->Vars = mVars.Data();
 	mSproutPtr->ToState(pState->Sprout);
 	mStacks[stackId].push(pState);
@@ -292,6 +295,7 @@ void Processor::PushState(const std::string& stackId)
 void Processor::PopState(const std::string& stackId)
 {
 	State* pState = mStacks[stackId].top();
+	mNextRnd = pState->NextRnd;
 	mVars.Data() = pState->Vars;
 	mSproutPtr->FromState(pState->Sprout);
 	mTrash.push(pState);
@@ -416,6 +420,13 @@ double Processor::GetTime()
 {
 	clock_t ticks = clock();
 	return (double)ticks / CLOCKS_PER_SEC;
+}
+
+double Processor::GetRandom(double min, double max)
+{
+	mNextRnd = mNextRnd * 1103515245 + 12345;
+    double rnd = ((unsigned int)(mNextRnd/65536) % 32768) / (double)(32768);
+	return min + rnd * (max-min);
 }
 
 void Processor::Log(const std::string& msg)

@@ -28,7 +28,6 @@ namespace Weirwood
 		ROTATE_OP,
 		DIRECTION_OP,
 		AIM_OP,
-		CURVE_OP,
 		SIZE_OP,
 		ALPHA_OP,
 		COLOR_RGB_OP,

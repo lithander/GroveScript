@@ -50,6 +50,7 @@ class Grove : public AppBasic {
 		void profileRunTime(double dt);
 		void printStats(Vec2f& textOutPos);
 		void toggleFullscreen();
+		void setCanvasSize(Vec2i size);
 		void loadScriptFile(const std::string scriptPath);
 		__time64_t queryScriptModTime(const std::string& scriptPath);
 

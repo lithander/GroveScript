@@ -302,8 +302,16 @@ double Expression::EvalFunction(FunctionSet func) const
 			mType = mTokens[mTokenIndex++];
 			return mContextPtr->GetTime();
 		case RND_FN:
-			mType = mTokens[mTokenIndex++];
-			return (float)rand()/(float)RAND_MAX;
+			if(mTokens[mTokenIndex] == RP)
+			{
+				mType = mTokens[mTokenIndex++];
+				return mContextPtr->GetRandom(0, 1);
+			}
+			a = EvalA1();
+			if(mType == RP)
+				return mContextPtr->GetRandom(0, a);
+			else
+				return mContextPtr->GetRandom(a, EvalA1());
 		case SIN_FN:
 			return sin(DEG_TO_RAD * EvalA1());
 		case COS_FN:

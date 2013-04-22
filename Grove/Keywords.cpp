@@ -81,6 +81,45 @@ Expression::TokenType Keywords::GetToken(const std::string& token)
 }
 
 
+double Keywords::Constant(const std::string& token)
+{
+	bool dontCare;
+	return Instance()->GetConstant(token, dontCare);
+}
+
+double Keywords::Constant(const std::string& token, bool& defined)
+{
+	bool dontCare;
+	return Instance()->GetConstant(token, defined);
+}
+
+void Keywords::Define(const std::string& token, double value)
+{
+	std::string cnst = to_upper_copy(token);
+	Instance()->SetConstant(cnst, value);
+}
+
+double Keywords::GetConstant(const std::string& token, bool& defined)
+{
+	std::string cnst = to_upper_copy(token);
+	std::map<std::string, double>::iterator it = mConstants.find(cnst);
+	if(it != mConstants.end())
+	{
+		defined = true;
+		return it->second;
+	}
+	else
+	{
+		defined = false;
+		return 0;
+	}
+}
+
+void Keywords::SetConstant(const std::string& token, double value)
+{
+	mConstants[token] = value;
+}
+
 Keywords* Keywords::Instance()
 {
 	if(mInstance == NULL)
@@ -95,7 +134,6 @@ void Keywords::Init()
 {
 	//OPERATIONS
 	mOperations["MOV"] = MOVE_OP;
-	mOperations["CRV"] = CURVE_OP;
 	mOperations["POS"] = POSITION_OP;
 	mOperations["ROT"] = ROTATE_OP;
 	mOperations["DIR"] = DIRECTION_OP;
@@ -118,7 +156,6 @@ void Keywords::Init()
 	mOperations["RPT"] = REPEAT_OP;
 
 	mOperations["MOVE"] = MOVE_OP;
-	mOperations["CURVE"] = CURVE_OP;
 	mOperations["POSITION"] = POSITION_OP;
 	mOperations["ROTATE"] = ROTATE_OP;
 	mOperations["DIRECTION"] = DIRECTION_OP;
@@ -172,4 +209,7 @@ void Keywords::Init()
 	mMacros["ELSE"] = ELSE_MC;
 	mMacros["RAISE"] = RAISE_MC;
 	mMacros["LOWER"] = LOWER_MC;
+
+	//Constants
+	mConstants["PI"] = 3.14159265359;
 }

@@ -16,6 +16,7 @@ namespace Weirwood
 		//STATE STACK
 		struct State
 		{
+			unsigned long NextRnd;
 			Variables Vars;
 			Sprout::State Sprout;
 		};
@@ -43,6 +44,7 @@ namespace Weirwood
 		virtual double GetVar(int i);
 		virtual double GetParam(int i);
 		virtual double GetTime();
+		virtual double GetRandom(double min, double max);
 		virtual void Log(const std::string& msg);
 		virtual void Abort(const std::string& msg);
 
@@ -73,6 +75,7 @@ namespace Weirwood
 
 		//input&state
 		bool mValid;
+		unsigned long mNextRnd;
 		Dictionary<double> mVars;
 		Dictionary<CommandList> mSequences;
 		Dictionary<SymbolList> mStructures;

@@ -4,7 +4,22 @@
 
 namespace Weirwood
 {
-	class ProductionRule : public IExpressionContext
+	class ProxyExpressionContext : public IExpressionContext
+	{
+	public:
+		ProxyExpressionContext(IExpressionContext* pContext);
+		//IExpressionContext (use Processor to resolve everything except parameters)
+		virtual double GetVar(int index);
+		virtual double GetParam(int index);
+		virtual double GetTime();
+		virtual double GetRandom(double min, double max);
+		virtual void Log(const std::string& msg);
+		virtual void Abort(const std::string& msg);
+	protected:
+		IExpressionContext* mContextPtr;
+	};
+
+	class ProductionRule : public ProxyExpressionContext
 	{
 		friend void swap(ProductionRule& first, ProductionRule& second);
 	public:
@@ -24,15 +39,10 @@ namespace Weirwood
 		inline Variables& Params() { return mParams; }
 		bool Match(SymbolList& symbols, SymbolList::iterator& current);
 		//IExpressionContext (use Processor to resolve everything except parameters)
-		virtual double GetVar(int index);
 		virtual double GetParam(int index);
-		virtual double GetTime();
-		virtual void Log(const std::string& msg);
-		virtual void Abort(const std::string& msg);
-		//can be used by client's to activate/deactive rules without much overhead. never set or read by this class.
+		//flag to be used by client's to activate/deactive rules without much overhead. never set or read by this class.
 		bool Active;
 	private:
-		IExpressionContext* mContextPtr;
 		int mLeftContext;
 		int mRightContext;
 		Variables mParams; //predeccessor names/defines params. usable in condition and form successor param generation

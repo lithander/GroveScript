@@ -41,7 +41,7 @@ namespace Weirwood
 		void ParseProductionRule();
 		void ParseCommand();
 		bool ParseParam(const std::string& token, int& out_pos, std::string& out);
-		void ParseExpression(const std::string& token, Expression* out, bool checkVarNames = true);
+		void ParseExpression(const std::string& token, Expression* out);
 		//Macro (Code-gen)
 		void ReadBlock(int depth);
 		void GenerateRepeat();
