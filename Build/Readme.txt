@@ -20,6 +20,6 @@ I suggest you look at the examples in the examples folder.
 
 If you want to write your own scripts (and I advice you to give it a try) there's a series of well commented scripts in the tutorial folder. There's also a short script reference in the doc folder.
 	
-If you have questions feel free to mail me at lithander@gmx.de
+If you have questions or comments feel free to mail me at lithander@gmx.de
 
 Have fun!

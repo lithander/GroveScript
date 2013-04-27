@@ -196,9 +196,9 @@ void Processor::ExecuteCommand(Instruction* pCmd)
 	}
 }
 
-void Processor::Shuffle(int seed)
-{
-	mNextRnd = seed;
+void Processor::Shuffle(unsigned long seed)
+{	
+	mNextRnd = (seed * 17312 + 2531011L) * 214013L;
 }
 
 void Processor::Seed(Instruction* pCmd)
@@ -410,7 +410,7 @@ double Processor::GetVar(int i)
 
 double Processor::GetParam(int i) 
 { 
-	if(mParamsPtr->size() > i)
+	if(mParamsPtr->size() > (unsigned int)i)
 		return mParamsPtr->at(i); 
 	else
 		return 0.0;
@@ -424,7 +424,7 @@ double Processor::GetTime()
 
 double Processor::GetRandom(double min, double max)
 {
-	mNextRnd = mNextRnd * 1103515245 + 12345;
+	mNextRnd = mNextRnd * 214013L + 2531011L;
     double rnd = ((unsigned int)(mNextRnd/65536) % 32768) / (double)(32768);
 	return min + rnd * (max-min);
 }

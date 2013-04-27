@@ -1,4 +1,6 @@
 /*
+Based on a simple L-System, rendered multiple times with a little fluff like colors and animation...
+
 Start: X
 Rules: X=-FF+FF+F+F-F-FFX;F=F
 Order: 30, Step Length: 10, Left Angle: 88, Right Angle: 92

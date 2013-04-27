@@ -21,6 +21,9 @@ Algebraic Expressions adhere to the usual rules and support the following functi
 	
 		time()				- returns the current runtime of the programm in seconds
 		random()			- returns a random number between 0 and 1
+		random(a)			- returns a random number between 0 and a
+		random(a, b)			- returns a random number between a and b
+
 		
 	Note: Modulo is implemented as operator '%' and not a function.
 

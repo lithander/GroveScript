@@ -61,7 +61,7 @@ namespace Weirwood
 		void Grow(const std::string& structure, const std::string& ruleSet);
 		void Seed(Instruction* pCmd);
 		void Run(Instruction* pCmd);
-		void Shuffle(int seed);
+		void Shuffle(unsigned long seed);
 		//void Execute(const std::string& structOrSeqName);
 		//void ExecuteWithParams(Instruction* cmd);
 		void Gate(bool condition, int depth);

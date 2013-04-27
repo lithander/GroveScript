@@ -1,7 +1,14 @@
-position 0, 60
+/*
+This example demonstrates the use of conditions and attached commands in production rules. 
+
+#ResolveFoo is responsible for generating the commands that are drawing the colored extensions.
+There are three rules that are applied in alternation. Each rule has a condtion that requireds a counter variable 'i' to be of a specific value. When the rule is rule is applied the attachment is executed and raises raises 'i' or in case of the blue variant resets it to 0.
+*/
+
+position 0, 120
 set i, 0
 set t, time()*180
-set step, 1
+set step, 1.5
 set size, 2
 size size
 
@@ -40,15 +47,13 @@ size size*3
 rotate 90
 move step*sin(t)
 rotate 180
+size size
 rgb 1,1,1
 move step*sin(t)
 rotate 90
-size size
 
 #ResolveFoo
 Foo : i = 0 -> Red Base
-	raise i
-Foo : i = 1 -> Green Base
 	raise i
 Foo : i = 1 -> Green Base
 	raise i

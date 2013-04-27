@@ -11,6 +11,8 @@ These commands control the turtle and - in combination - produce the vector rend
 
 Move x (number)
 	Will move the turtle by the given length
+Move x, y (number, number)
+	Will move the turtle by x on a curve rotating it by y
 Positon x, y (number, number)
 	Will set the turtles position to the given position (x,y)
 Rotate x (number)

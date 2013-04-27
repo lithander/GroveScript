@@ -1,3 +1,7 @@
+/*
+One early example that demonstrates the use of the time() function to generate an animation. 
+*/
+
 set t, abs(cos(time()*60))
 set tt, 3+3*floor(0.5+((time()*120)/360)%5)
 out tt

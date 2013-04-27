@@ -1,10 +1,15 @@
-//seed the random sequence
+/*
+This example demonstrates the use of conditions and randomly generated numbers to add the element of chance to the generated structure.
+
+The rnd() function can generate a number within a specific range (if you supply the range as paremeters) based on a PRNG seeded by the 'shuffle' command.
+*/
+
 shuffle floor(time())
 
-position 0, 60
+position 0, 120
 set foo, 0
 set t, time()*180
-set step, 1
+set step, 1.5
 set size, 2
 size size
 
@@ -44,9 +49,9 @@ rotate 90
 move step*sin(t)
 rotate 180
 rgb 1,1,1
+size size
 move step*sin(t)
 rotate 90
-size size
 
 #ResolveFoo
 Foo : rnd() >= 0.5 -> Red Base

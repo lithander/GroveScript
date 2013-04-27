@@ -137,20 +137,20 @@ void Sprout::LookAt(float x, float y)
 
 void Sprout::SetColorRGB(float r, float g, float b)
 {
+	Render(false);
 	mColor = ci::Color(r,g,b);
-	glColor4f(mColor.r, mColor.g, mColor.b, mAlpha);
 }
 
 void Sprout::SetColorHSV(float h, float s, float v)
 {
+	Render(false);
 	mColor = ci::hsvToRGB(ci::Vec3d(h,s,v));
-	glColor4f(mColor.r, mColor.g, mColor.b, mAlpha);
 }
 
 void Sprout::SetAlpha(float alpha)
 {
+	Render(false);
 	mAlpha = alpha;
-	glColor4f(mColor.r, mColor.g, mColor.b, mAlpha);
 }
 
 //PRIVATE
@@ -159,6 +159,7 @@ void Sprout::Render(bool enabled)
 	if(enabled && !mRendering)
 	{
 		glBegin(GL_LINE_STRIP);
+		glColor4f(mColor.r, mColor.g, mColor.b, mAlpha);
 		glVertex2f(mPosition);
 		mRendering = true;
 	}

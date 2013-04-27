@@ -1,4 +1,6 @@
 /*
+Based on a simple L-System with a little fluff like colors and animation...
+
 Start: F
 Rules: F=FF-/-F+F+F\+/+F-F-F\
 Order: 4, Left Angle: 22, Right Angle: 22
