@@ -89,7 +89,6 @@ double Keywords::Constant(const std::string& token)
 
 double Keywords::Constant(const std::string& token, bool& defined)
 {
-	bool dontCare;
 	return Instance()->GetConstant(token, defined);
 }
 

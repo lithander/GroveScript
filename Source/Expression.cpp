@@ -187,6 +187,7 @@ bool Expression::EvalComparision() const
 		return left >= EvalA1();
 	default:
 		Throw("Comparision expected!");
+		return false;
 	}
 }
 

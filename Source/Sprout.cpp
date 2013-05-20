@@ -83,7 +83,7 @@ void Sprout::Move(float units, float rotationDegree)
 	//point of rotation
 	Vec2f pR = mPosition - vR;
 	//degrees per step so it looks smooth
-	float stepAngle = (2.0/mUnitLength*360)/abs(rBase); //2 pixel steps on the circumference
+	float stepAngle = (float)(2.0/mUnitLength*360)/abs(rBase); //2 pixel steps on the circumference
 	//do as many steps as needed to reach target angle
 	float angle = 0;
 	while(angle < abs(rotationDegree))
