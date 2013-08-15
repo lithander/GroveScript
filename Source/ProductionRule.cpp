@@ -55,7 +55,7 @@ void Weirwood::swap(ProductionRule& first, ProductionRule& second)
 	swap(first.mParamGenerator, second.mParamGenerator); 
 }
 
-ProductionRule::ProductionRule(IExpressionContext* pContext) : ProxyExpressionContext(pContext), Active(true), mCondition(pContext), mParamGenerator(pContext), mLeftContext(0), mRightContext(0)
+ProductionRule::ProductionRule(IExpressionContext* pContext) : ProxyExpressionContext(pContext), Active(true), mCondition(this), mParamGenerator(this), mLeftContext(0), mRightContext(0)
 {
 };
 

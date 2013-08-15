@@ -1,5 +1,6 @@
 #include "Keywords.h"
 #include <cctype>
+#include <functional>
 
 using namespace Weirwood;
 

@@ -7,7 +7,7 @@ void main()
 { 
 	vec3 base = texture2D( tex0, gl_TexCoord[0].st).rgb;
 	vec3 blur = texture2D( tex1, gl_TexCoord[0].st).rgb;
-	vec3 glow = blur * blur * 4;
-	gl_FragColor.rgb = (1-glow)*base+glow;
+	vec3 glow = blur * blur * 4.0;
+	gl_FragColor.rgb = (1.0-glow)*base+glow;
 	gl_FragColor.a = 1.0;
 }
